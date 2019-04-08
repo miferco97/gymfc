@@ -324,14 +324,14 @@ void QuadcopterWorldPlugin::processSDF(sdf::ElementPtr _sdf)
 void QuadcopterWorldPlugin::softReset(){
  srand (time(NULL));
 
- float r = (((rand()%314)-(314/2))/100.0);
- float p = (((rand()%314)-(314/2))/100.0);
+ float r = 0.85*(((rand()%314)-(314/2))/100.0);
+ float p = 0.85*(((rand()%314)-(314/2))/100.0);
  float y = ((rand()%(314*2)-(314))/100.0);
 
- r = 0;
+ /*r = 0;
  p = 0;
  y = 0;
-
+*/
 //    gzdbg <<"r: "<<r<<" p:" <<p<<" :y "<< y <<"\n";
  ignition::math::Pose3d initial_pos(0,0,1,r,p,y);
 //   ignition::math::Pose3d initial_pos(0,0,1,r,p,0);

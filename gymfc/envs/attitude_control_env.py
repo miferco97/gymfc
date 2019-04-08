@@ -30,16 +30,17 @@ class AttitudeFlightControlEnv(GazeboEnv):
         super(AttitudeFlightControlEnv, self).__init__()
 
     def compute_reward(self):
-        rew_R = np.abs(self.obs.euler[0]/(pi/2));
-        rew_P = np.abs(self.obs.euler[1]/(pi/2));
-        rew_Y = np.abs(self.obs.euler[2]/pi);
+        rew_R = np.abs(self.obs.euler[0]/(pi/2))
+        rew_P = np.abs(self.obs.euler[1]/(pi/2))
+        rew_Y = np.abs(self.obs.euler[2]/pi)
         # if
         #
         # print("reward R: ", rew_R)
         # print("reward P: ", rew_P)
         # print("reward Y: ", rew_Y)
 
-        reward = (rew_P+rew_R+rew_Y) / 3
+        # reward = - (rew_P+rew_R+rew_Y) / 3
+        reward = - (rew_P)
         # print("total reward",reward)
         # print("-----------")
 
@@ -184,7 +185,7 @@ class CaRL_env(AttitudeFlightControlEnv):
         elif np.abs(self.obs.euler[0]) >= 0.999 * (pi / 2) or  np.abs(self.obs.euler[1]) >= 0.999 * (pi / 2):
             done = True
         #     self.last_angular_part=0;
-        #     # reward = -100
+            reward = -1000 * (self.max_sim_time-self.sim_time)
         else:
             done = False
 
