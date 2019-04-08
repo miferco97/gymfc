@@ -163,7 +163,7 @@ class CaRL_env(AttitudeFlightControlEnv):
         # print("action:", action)
         # Step the sim
 
-        self.last_action = action;
+        self.last_action = action
 
         self.obs = self.step_sim(action)
 
@@ -174,7 +174,7 @@ class CaRL_env(AttitudeFlightControlEnv):
         self.observation_history.append(np.concatenate([state, self.obs.motor_velocity]))
 
         reward = self.compute_reward()
-        self.last_reward = reward;
+        self.last_reward = reward
         # self.animate()
 
         # print("pitch:", self.obs.euler[1])
@@ -182,10 +182,10 @@ class CaRL_env(AttitudeFlightControlEnv):
             done = True
             self.last_theta_norm=0
         # elif np.abs(self.obs.euler[2]) >= pi / 2 or np.abs(self.obs.euler[1]) >= 0.99 * (pi / 2):
-        elif np.abs(self.obs.euler[0]) >= 0.999 * (pi / 2) or  np.abs(self.obs.euler[1]) >= 0.999 * (pi / 2):
+        elif np.abs(self.obs.euler[0]) >= 0.999 * (pi / 2) or np.abs(self.obs.euler[1]) >= 0.999 * (pi / 2):
             done = True
         #     self.last_angular_part=0;
-            reward = -1000 * (self.max_sim_time-self.sim_time)
+            reward = -100
         else:
             done = False
 
