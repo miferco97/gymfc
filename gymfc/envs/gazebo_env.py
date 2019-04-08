@@ -73,9 +73,15 @@ class FDMPacket:
         self.motor_velocity = [raw_motor_velocities[self.motor_mapping[i]] 
                             for i in range(len(raw_motor_velocities))]
 
-
+        # print(self.orientation_quat)
+        self.euler = quaternion_to_euler(self.orientation_quat[0],self.orientation_quat[1],self.orientation_quat[2],self.orientation_quat[3])
+        #
+        # uncomment this line to convert rads to degs
+        # for i in range (3):
+        #     self.euler[i]=self.euler[i]*180/3.1416
+        # print(self.euler)
         self.status_code = unpacked[21]
-        unpacked.flags.writeable = False # Sensor values are readonly 
+        unpacked.flags.writeable = False # Sensor values are readonly
         return self
 
 
@@ -256,7 +262,7 @@ class GazeboEnv(gym.Env):
         # Convert to motor input to PWM range [0, 1000] to match
         # Betaflight mixer output
         pwm_motor_values = [ ((m + 1) * 500) for m in action]
-
+        # print(pwm_motor_values)
         # Packets are sent over UDP so they can be dropped, there is no 
         # gaurentee. First we try and send command. If an error occurs in transition 
         # try again or for some reason something goes wrong in the simualator and 
@@ -281,7 +287,11 @@ class GazeboEnv(gym.Env):
 
         # Make these visible
         self.omega_actual = observations.angular_velocity_rpy
-        self.sim_time = observations.timestamp 
+
+        # begin here OBSERVATION SPACE
+
+
+        self.sim_time = observations.timestamp
         # In the event a packet is dropped we could be out of sync. This has only ever been
         # observed when dozens of simulations are run in parellel. We need the speed 
         # of UDP so until this becomes an issue just track how many we suspect were dropped.
@@ -452,3 +462,18 @@ class SDFNoMaxStepSizeFoundException(Exception):
 class ConfigLoadException(Exception):
     pass
 
+def quaternion_to_euler(x, y, z, w):
+
+    t0 = +2.0 * (w * x + y * z)
+    t1 = +1.0 - 2.0 * (x * x + y * y)
+    roll = math.atan2(t0, t1)
+    t2 = +2.0 * (w * y - z * x)
+    t2 = +1.0 if t2 > +1.0 else t2
+    t2 = -1.0 if t2 < -1.0 else t2
+    pitch = math.asin(t2)
+    t3 = +2.0 * (w * z + x * y)
+    t4 = +1.0 - 2.0 * (y * y + z * z)
+    yaw = math.atan2(t3, t4)
+
+    return [roll,pitch,yaw]; #really is yaw,pitch,roll
+    # return [yaw, pitch, roll]

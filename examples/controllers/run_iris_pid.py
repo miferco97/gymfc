@@ -14,8 +14,8 @@ to confirm the GymFC environment is setup and installed correctly.
 
 The PID and mix settings reflect what was used in the following paper,
 
-Koch, William, Renato Mancuso, Richard West, and Azer Bestavros. 
-"Reinforcement Learning for UAV Attitude Control." arXiv 
+Koch, William, Renato Mancuso, Richard West, and Azer Bestavros.
+"Reinforcement Learning for UAV Attitude Control." arXiv
 preprint arXiv:1804.04154 (2018).
 
 For reference, PID
@@ -26,18 +26,18 @@ PID YAW = [4, 50, 0.0]
 
 and mix for values throttle, roll, pitch, yaw,
 
-rear right motor = [ 1.0, -1.0,  0.598, -1.0 ]  
+rear right motor = [ 1.0, -1.0,  0.598, -1.0 ]
 front rear motor = [ 1.0, -0.927, -0.598,  1.0 ]
 rear left motor  = [ 1.0,  1.0,  0.598,  1.0 ]
 front left motor = [ 1.0,  0.927, -0.598, -1.0 ]
 
 PID terms were found first using the Ziegler–Nichols method and then manually tuned
-for increased response. The Iris quadcopter does not have an X frame therefore 
+for increased response. The Iris quadcopter does not have an X frame therefore
 a custom mixer is required. Using the mesh files found in the Gazebo models they were
 imported into a CAD program and the motor constraints were measured. Using these
 values the mix calculater found here, https://www.iforce2d.net/mixercalc, was
 used to derive the values. The implmementation of the PID controller can be found here,
-https://github.com/ivmech/ivPID/blob/master/PID.py, windup has been removed so 
+https://github.com/ivmech/ivPID/blob/master/PID.py, windup has been removed so
 another variable was not introduced.
 """
 
@@ -87,7 +87,7 @@ def plot_step_response(desired, actual,
     ax[0].plot(t, desired[:,0], reflinestyle)
     ax[0].plot(t, desired[:,0] -  threshold[:,0] , error_linestyle, alpha=0.5)
     ax[0].plot(t, desired[:,0] +  threshold[:,0] , error_linestyle, alpha=0.5)
- 
+
     r = actual[:,0]
     ax[0].plot(t[:len(r)], r, linewidth=res_linewidth)
 
@@ -146,6 +146,7 @@ def eval(env, pi):
     desireds = []
     pi.reset()
     ob = env.reset()
+    env.render()
     while True:
         desired = env.omega_target
         actual = env.omega_actual
@@ -154,8 +155,8 @@ def eval(env, pi):
         ob, reward, done, info = env.step(ac)
         actuals.append(actual)
         desireds.append(desired)
-        if done:
-            break
+        # if done:
+        #     break
     env.close()
     return desireds, actuals
 
@@ -197,10 +198,10 @@ class PIDController(object):
         self.Kd = [self.DTERM_SCALE * d for d in self.Kd]
 
 
-        self.itermLimit = itermLimit 
+        self.itermLimit = itermLimit
 
         self.previousRateError = [0]*3
-        self.previousTime = 0 
+        self.previousTime = 0
         self.previous_motor_values = [self.minthrottle]*4
         self.pid_rpy = [PID(*pid_roll), PID(*pid_pitch), PID(*pid_yaw)]
 
@@ -226,10 +227,10 @@ class PIDController(object):
         pidSumLimit = 10000.#500
         pidSumLimitYaw = 100000.#1000.0#400
         motorOutputMixSign = 1
-        motorOutputRange = self.maxthrottle - self.minthrottle# throttle max - throttle min 
+        motorOutputRange = self.maxthrottle - self.minthrottle# throttle max - throttle min
         motorOutputMin = self.minthrottle
 
-        currentMixer=[ 
+        currentMixer=[
             [ 1.0, -1.0,  0.598, -1.0 ],          # REAR_R
             [ 1.0, -0.927, -0.598,  1.0 ],          # RONT_R
             [ 1.0,  1.0,  0.598,  1.0 ],          # REAR_L
@@ -237,7 +238,7 @@ class PIDController(object):
         ]
         mixer_index_throttle = 0
         mixer_index_roll = 1
-        mixer_index_pitch = 2 
+        mixer_index_pitch = 2
         mixer_index_yaw = 3
 
         scaledAxisPidRoll = self.constrainf(r, -pidSumLimit, pidSumLimit) / PID_MIXER_SCALING
@@ -270,7 +271,7 @@ class PIDController(object):
         #print("range=", motorMixRange)
 
         if motorMixRange > 1.0:
-            for i in range(motor_count): 
+            for i in range(motor_count):
                 motorMix[i] /= motorMixRange
             # Get the maximum correction by setting offset to center when airmode enabled
             throttle = 0.5
@@ -332,7 +333,8 @@ class PID:
     """
 
     def __init__(self, P=0.2, I=0.0, D=0.0):
-
+	#EDITADO POR MI
+        #self.Kp = P
         self.Kp = P
         self.Ki = I
         self.Kd = D
@@ -431,6 +433,7 @@ def main(env_id, seed):
     workerseed = seed + 1000000 * rank
     env.seed(workerseed)
     pi = PIDPolicy()
+#    env.render()
     desireds, actuals = eval(env, pi)
     title = "PID Step Response in Environment {}".format(env_id)
     plot_step_response(np.array(desireds), np.array(actuals), title=title)

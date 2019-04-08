@@ -54,5 +54,7 @@ setup(name='gymfc',
       ]},
       include_package_data=True,
       cmdclass={'build': CustomBuild},
-      install_requires=['gym', 'numpy', 'psutil'],
+     install_requires=['gym', 'numpy', 'psutil'],
 )
+
+

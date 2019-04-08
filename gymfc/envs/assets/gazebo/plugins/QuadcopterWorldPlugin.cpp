@@ -17,6 +17,9 @@
 #include <functional>
 #include <fcntl.h>
 #include <cstdlib>
+#include <vector>
+#include <stdlib.h>
+#include <time.h>
 
 
 #ifdef _WIN32
@@ -52,7 +55,6 @@ typedef SSIZE_T ssize_t;
 
 #include "QuadcopterWorldPlugin.hh"
 
-
 using namespace gazebo;
 /// \brief Obtains a parameter from sdf.
 /// \param[in] _sdf Pointer to the sdf object.
@@ -84,6 +86,7 @@ GZ_REGISTER_WORLD_PLUGIN(QuadcopterWorldPlugin)
 
 QuadcopterWorldPlugin::QuadcopterWorldPlugin() 
 {
+
   // socket
   this->handle = socket(AF_INET, SOCK_DGRAM /*SOCK_STREAM*/, 0);
   #ifndef _WIN32
@@ -317,9 +320,29 @@ void QuadcopterWorldPlugin::processSDF(sdf::ElementPtr _sdf)
 }
 
 void QuadcopterWorldPlugin::softReset(){
+ srand (time(NULL));
+
+ float r = (((rand()%314)-(314/2))/100.0);
+ float p = (((rand()%314)-(314/2))/100.0);
+ float y = ((rand()%(314*2)-(314))/100.0);
+
+//    gzdbg <<"r: "<<r<<" p:" <<p<<" :y "<< y <<"\n";
+ ignition::math::Pose3d initial_pos(0,0,1,r,p,y);
+//   ignition::math::Pose3d initial_pos(0,0,1,r,p,0);
+//   ignition::math::Pose3d initial_pos(0,0,1,0,0,0);
+
     this->_world->ResetTime();
     this->_world->ResetEntities(gazebo::physics::Base::BASE);
-	this->_world->ResetPhysicsStates();
+//    this->_world->ResetEntities(gazebo::physics::Model::MODEL);
+
+    this->_world->ResetPhysicsStates();
+//    this->_model->SetWorldPose(initial_pos);
+    this->_model->SetLinkWorldPose(initial_pos,"quadcopter_attitude_control::quadcopter_attitude_control::quadcopter::quadcopter_model::base_link");
+
+
+
+
+
 }
 
 void QuadcopterWorldPlugin::loop_thread()
@@ -347,7 +370,10 @@ void QuadcopterWorldPlugin::loop_thread()
 				double spR = 0.0;
 				double spP = 0.0;
 				double spY = 0.0;
+
 				//Flush stale IMU values
+				/*
+
 				while (1)
 				{
   						ignition::math::Vector3d rates = this->imuSensor->AngularVelocity();
@@ -365,6 +391,7 @@ void QuadcopterWorldPlugin::loop_thread()
 						}
 				}
 
+                */
 				
   				if (this->_world->SimTime().Double() != 0.0){
 					gzerr << "Reset sent but clock did not reset, at " << this->_world->SimTime().Double() << "\n";
@@ -410,6 +437,7 @@ bool QuadcopterWorldPlugin::Bind(const char *_address, const uint16_t _port)
       #endif
       return false;
     }
+
     return true;
   }
 
@@ -613,6 +641,7 @@ void QuadcopterWorldPlugin::SendState(bool motorCommandProcessed) const
   pkt.imuLinearAccelerationXYZ[0] = linearAccel.X();
   pkt.imuLinearAccelerationXYZ[1] = linearAccel.Y();
   pkt.imuLinearAccelerationXYZ[2] = linearAccel.Z();
+
   // gzerr << "lin accel [" << linearAccel << "]\n";
 
   // get angular velocity in body frame
@@ -623,6 +652,8 @@ void QuadcopterWorldPlugin::SendState(bool motorCommandProcessed) const
   pkt.imuAngularVelocityRPY[0] = angularVel.X();
   pkt.imuAngularVelocityRPY[1] = angularVel.Y();
   pkt.imuAngularVelocityRPY[2] = angularVel.Z();
+
+
 
  //if (pkt.iter == 0){
   //}
@@ -654,6 +685,8 @@ void QuadcopterWorldPlugin::SendState(bool motorCommandProcessed) const
   ignition::math::Pose3d worldToModel = gazeboToNED +
     this->_model->WorldPose();
 
+//    gzdbg << this->_model->WorldPose()<<"\n";
+
   // get transform from world NED to Model frame
   ignition::math::Pose3d NEDToModel = worldToModel - gazeboToNED;
 
@@ -670,10 +703,19 @@ void QuadcopterWorldPlugin::SendState(bool motorCommandProcessed) const
 
   // imuOrientationQuat is the rotation from world NED frame
   // to the quadrotor frame.
-  pkt.imuOrientationQuat[0] = NEDToModel.Rot().W();
-  pkt.imuOrientationQuat[1] = NEDToModel.Rot().X();
-  pkt.imuOrientationQuat[2] = NEDToModel.Rot().Y();
-  pkt.imuOrientationQuat[3] = NEDToModel.Rot().Z();
+
+  ignition::math::Quaterniond quat =this->imuSensor->Orientation();
+
+  pkt.imuOrientationQuat[0] = quat.W();
+  pkt.imuOrientationQuat[1] = quat.X();
+  pkt.imuOrientationQuat[2] = quat.Y();
+  pkt.imuOrientationQuat[3] = quat.Z();
+
+
+//  pkt.imuOrientationQuat[0] = NEDToModel.Rot().W();
+//  pkt.imuOrientationQuat[1] = NEDToModel.Rot().X();
+//  pkt.imuOrientationQuat[2] = NEDToModel.Rot().Y();
+//  pkt.imuOrientationQuat[3] = NEDToModel.Rot().Z();
 
   // gzdbg << "imu [" << worldToModel.rot.GetAsEuler() << "]\n";
   // gzdbg << "ned [" << gazeboToNED.rot.GetAsEuler() << "]\n";
@@ -695,8 +737,8 @@ void QuadcopterWorldPlugin::SendState(bool motorCommandProcessed) const
   } else {
 	  pkt.status_code = 0;
   }
-
-  /*  
+//  gzdbg <<"sizeof(pkt): " <<sizeof(pkt)<<"\n";
+  /*
   char b[sizeof(pkt)];
   memcpy(b, &pkt, sizeof(pkt));
 
@@ -705,7 +747,7 @@ void QuadcopterWorldPlugin::SendState(bool motorCommandProcessed) const
   ::sendto(this->handle,
 		  b,
            sizeof(pkt), 0,
-		   (struct sockaddr *)&this->remaddr, this->remaddrlen); 
+		   (struct sockaddr *)&this->remaddr, this->remaddrlen);
 
   //struct sockaddr_in sockaddr;
   //this->MakeSockAddr("127.0.0.1", 9003, sockaddr);
@@ -713,7 +755,7 @@ void QuadcopterWorldPlugin::SendState(bool motorCommandProcessed) const
   ::sendto(this->handle,
            reinterpret_cast<raw_type *>(&pkt),
            sizeof(pkt), 0,
-		   (struct sockaddr *)&this->remaddr, this->remaddrlen); 
+		   (struct sockaddr *)&this->remaddr, this->remaddrlen);
    //        (struct sockaddr *)&sockaddr, sizeof(sockaddr));
 }
 
@@ -726,7 +768,7 @@ Rotor::Rotor()
     this->frequencyCutoff = this->kDefaultFrequencyCutoff;
     this->samplingRate = this->kDefaultSamplingRate;
 	*/
-	
+
 	// P, I, D, Imin, Imax, cmdMax, cmdMin
     this->pid.Init(0.1, 0, 0, 0, 0, 1.0, -1.0);
 }

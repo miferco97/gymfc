@@ -3,21 +3,139 @@ import numpy as np
 from .gazebo_env import GazeboEnv
 import logging
 logger = logging.getLogger("gymfc")
+from math import pi
 
+
+import serial
+
+#
+#        # Used to hold data coming over UART
+# while(1):
+#     # Wait until there is data waiting in the serial buffer
+#     if(serialPort.in_waiting > 0):
+#         # Read data out of the buffer until a carraige return / new line is found
+#         serialString = serialPort.readline()
+#         # Print the contents of the serial data
+#         print(int(serialString.decode('utf-8')))
+#
+#         # Tell the device connected over the serial port that we recevied the data!
+#         # The b at the beginning is used to indicate bytes!
+#         serialResponse = "-255 \n"
+#         serialPort.write(serialResponse.encode("utf-8"))
+#
+#
+import math
+import gym
+from gym import spaces, logger
+from gym.utils import seeding
+import numpy as np
 
 class AttitudeFlightControlEnv(GazeboEnv):
-    def __init__(self, **kwargs): 
+    def __init__(self, **kwargs):
+        self.last_angular_part = 0;
+        self.last_theta_norm=0;
+        self.error_raw=np.zeros(7)
         self.max_sim_time = kwargs["max_sim_time"]
+
+        np.random.seed(seed=None)
         super(AttitudeFlightControlEnv, self).__init__()
 
     def compute_reward(self):
-        """ Compute the reward """
-        return -np.clip(np.sum(np.abs(self.error))/(self.omega_bounds[1]*3), 0, 1)
+
+        ref_quat = np.asarray([1,0,0,0])
+        actual_quat = self.obs.orientation_quat
+        # norm_cuat = np.sqrt(np.sum(np.power(self.obs.orientation_quat,2),axis=0))
+        # print("norm_cuat",norm_cuat)
+        theta=2*np.arccos(np.dot(ref_quat,actual_quat))
+
+        # actual_theta_norm = theta/(2*pi)
+        actual_theta_norm = (np.exp(theta/(2*pi)) - 1) /(np.exp(1)-1)
+        action_part = (np.sum((1 + self.last_action) / 2) / 4)  # action part between [0 y 1]
+
+        reward = - actual_theta_norm - 0.001 * action_part
+        #reward = self.last_theta_norm - actual_theta_norm
+        # self.last_theta_norm = actual_theta_norm
+
+        # print ("reward: ", reward)
+        return reward
+
+        # return -np.clip(np.sum(np.abs(self.error)) / (self.omega_bounds[1] * 3), 0, 1)
+
+
+    # def compute_reward(self):
+    #     """ Compute the reward """
+    #
+    #     # self.angular_part = - np.sum(np.abs(self.error)) / 3
+    #
+    #     self.angular_part = - math.exp(np.sum(np.abs(self.error)))
+    #
+    #     reward = self.angular_part - self.last_angular_part #+ action_part
+    #     self.last_angular_part =self.angular_part
+    #
+    #     #action_part = - 0.01 * (np.sum((1 + self.last_action)/2)/4) # action part between [0 y 1]
+    #     return reward
+
+        # return -np.clip(np.sum(np.abs(self.error)) / (self.omega_bounds[1] * 3), 0, 1)
 
     def sample_target(self):
-        """ Sample a random angular velocity """
-        return  self.np_random.uniform(self.omega_bounds[0], self.omega_bounds[1], size=3)
-    
+        """ sample a random angle """
+        return np.asfarray([0,0,0])
+
+class CaRL_env(AttitudeFlightControlEnv):
+    def __init__(self, **kwargs):
+        self.observation_history = []
+        self.memory_size = kwargs["memory_size"]
+        super(CaRL_env, self).__init__(**kwargs)
+        self.omega_target = self.sample_target()
+
+        # self.render()
+
+
+    def step(self, action):
+        action = np.clip(action, self.action_space.low, self.action_space.high)
+        # print("action:", action)
+        # Step the sim
+
+        self.last_action = action;
+
+        self.obs = self.step_sim(action)
+
+        quat = self.obs.orientation_quat
+        self.speeds = self.obs.angular_velocity_rpy / (self.omega_bounds[1])
+
+        state = np.append(quat, self.speeds)
+        self.observation_history.append(np.concatenate([state, self.obs.motor_velocity]))
+
+        reward = self.compute_reward()
+        # print("pitch:", self.obs.euler[1])
+        if self.sim_time >= self.max_sim_time:
+            done = True
+            self.last_theta_norm=0
+        # elif np.abs(self.obs.euler[2]) >= pi / 2 or np.abs(self.obs.euler[1]) >= 0.99 * (pi / 2):
+        # # elif np.abs(self.obs.euler[1]) >= 0.99 * (pi / 2):
+        #     done = True
+        #     self.last_angular_part=0;
+        #     # reward = -100
+        else:
+            done = False
+
+        info = {"sim_time": self.sim_time, "sp": self.omega_target, "current_rpy": self.omega_actual}
+        # print("state: ",state);
+
+        return state, reward, done, info
+
+    def state(self):
+        """ Get the current state """
+
+
+        return np.zeros(7)
+
+    def reset(self):
+        self.observation_history = []
+        return super(CaRL_env, self).reset()
+
+
+
 class GyroErrorFeedbackEnv(AttitudeFlightControlEnv):
     def __init__(self, **kwargs): 
         self.observation_history = []
@@ -28,8 +146,8 @@ class GyroErrorFeedbackEnv(AttitudeFlightControlEnv):
     def step(self, action):
         action = np.clip(action, self.action_space.low, self.action_space.high) 
         # Step the sim
-        self.obs = self.step_sim(action)
-        self.error = self.omega_target - self.obs.angular_velocity_rpy
+        self.obs = self.step_sim(action) # all observations
+        self.error = (self.omega_target - self.obs.angular_velocity_rpy)
         self.observation_history.append(np.concatenate([self.error]))
         state = self.state()
         done = self.sim_time >= self.max_sim_time

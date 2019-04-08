@@ -5,6 +5,17 @@ MAX_MEMORY = 11
 default_kwargs = {
 }
 
+kwargs = {
+    "memory_size": 1,
+    "max_sim_time": 20,
+    }
+kwargs.update(default_kwargs)
+id = 'CaRL_GymFC-MotorVel_M4_Ep-v0'
+register(
+    id=id,
+    entry_point='gymfc.envs:CaRL_env',
+    kwargs=kwargs)
+
 #Episodic task with ESC supporting sensors for telemetry
 kwargs = {
     "memory_size": 1,
