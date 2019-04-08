@@ -41,7 +41,7 @@ class AttitudeFlightControlEnv(GazeboEnv):
         actual_theta_norm = (np.exp(theta/(2*pi)) - 1) /(np.exp(1)-1)
         action_part = (np.sum((1 + self.last_action) / 2) / 4)  # action part between [0 y 1]
 
-        reward = - actual_theta_norm - 0.001 * action_part
+        reward = - actual_theta_norm #- 0.001 * action_part
         #reward = self.last_theta_norm - actual_theta_norm
         # self.last_theta_norm = actual_theta_norm
 
@@ -157,7 +157,7 @@ class CaRL_env(AttitudeFlightControlEnv):
 
         reward = self.compute_reward()
         self.last_reward = reward;
-        self.animate()
+        # self.animate()
         # self.ani = animation.FuncAnimation(self.fig, self.animate, interval=1000)
 
         # print("pitch:", self.obs.euler[1])

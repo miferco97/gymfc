@@ -29,7 +29,7 @@
 		<parent>pivot</parent>
 
 		<child>quadcopter::quadcopter_model::base_link</child>
-		 <axis>  <xyz> 0 1 0 </xyz> </axis>
+		<!-- <axis>  <xyz> 0 1 0 </xyz> </axis> -->
 	</joint>
 
   </model>
