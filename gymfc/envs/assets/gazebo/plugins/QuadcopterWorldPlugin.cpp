@@ -286,6 +286,8 @@ void QuadcopterWorldPlugin::processSDF(sdf::ElementPtr _sdf)
   this->imuSensor = std::dynamic_pointer_cast<sensors::ImuSensor>
     (sensors::SensorManager::Instance()->GetSensor(imuScopedName));
 
+//  this->imuSensor->SetReferencePose();
+
   if (!this->imuSensor)
   {
     gzerr << "imu_sensor [" << imuScopedName
@@ -325,6 +327,10 @@ void QuadcopterWorldPlugin::softReset(){
  float r = (((rand()%314)-(314/2))/100.0);
  float p = (((rand()%314)-(314/2))/100.0);
  float y = ((rand()%(314*2)-(314))/100.0);
+
+ r = 0;
+ p = 0;
+ y = 0;
 
 //    gzdbg <<"r: "<<r<<" p:" <<p<<" :y "<< y <<"\n";
  ignition::math::Pose3d initial_pos(0,0,1,r,p,y);

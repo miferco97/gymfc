@@ -30,22 +30,39 @@ class AttitudeFlightControlEnv(GazeboEnv):
         super(AttitudeFlightControlEnv, self).__init__()
 
     def compute_reward(self):
+        rew_R = np.abs(self.obs.euler[0]/(pi/2));
+        rew_P = np.abs(self.obs.euler[1]/(pi/2));
+        rew_Y = np.abs(self.obs.euler[2]/pi);
+        # if
+        #
+        # print("reward R: ", rew_R)
+        # print("reward P: ", rew_P)
+        # print("reward Y: ", rew_Y)
+
+        reward = (rew_P+rew_R+rew_Y) / 3
+        # print("total reward",reward)
+        # print("-----------")
+
+        return reward
+
+    def compute_reward_1(self):
 
         ref_quat = np.asarray([1,0,0,0])
         actual_quat = self.obs.orientation_quat
         # norm_cuat = np.sqrt(np.sum(np.power(self.obs.orientation_quat,2),axis=0))
         # print("norm_cuat",norm_cuat)
+        # print("actual cuat",actual_quat)
         theta=2*np.arccos(np.dot(ref_quat,actual_quat))
 
+
         # actual_theta_norm = theta/(2*pi)
-        actual_theta_norm = (np.exp(theta/(2*pi)) - 1) /(np.exp(1)-1)
+        actual_theta_norm = (np.exp(theta/(2*pi)) - 1) /(np.exp(1)-1 + 1e-12)
         action_part = (np.sum((1 + self.last_action) / 2) / 4)  # action part between [0 y 1]
 
         reward = - actual_theta_norm #- 0.001 * action_part
         #reward = self.last_theta_norm - actual_theta_norm
         # self.last_theta_norm = actual_theta_norm
 
-        # print ("reward: ", reward)
         return reward
 
         # return -np.clip(np.sum(np.abs(self.error)) / (self.omega_bounds[1] * 3), 0, 1)
@@ -80,7 +97,7 @@ class CaRL_env(AttitudeFlightControlEnv):
         super(CaRL_env, self).__init__(**kwargs)
         self.omega_target = self.sample_target()
         self.last_reward=0;
-        # self.render()
+        self.render()
 
         self.fig, self.ax = plt.subplots(2,sharex=True)
         # self.ax = self.fig.add_subplot(211)
@@ -158,15 +175,14 @@ class CaRL_env(AttitudeFlightControlEnv):
         reward = self.compute_reward()
         self.last_reward = reward;
         # self.animate()
-        # self.ani = animation.FuncAnimation(self.fig, self.animate, interval=1000)
 
         # print("pitch:", self.obs.euler[1])
         if self.sim_time >= self.max_sim_time:
             done = True
             self.last_theta_norm=0
         # elif np.abs(self.obs.euler[2]) >= pi / 2 or np.abs(self.obs.euler[1]) >= 0.99 * (pi / 2):
-        # # elif np.abs(self.obs.euler[1]) >= 0.99 * (pi / 2):
-        #     done = True
+        elif np.abs(self.obs.euler[0]) >= 0.999 * (pi / 2) or  np.abs(self.obs.euler[1]) >= 0.999 * (pi / 2):
+            done = True
         #     self.last_angular_part=0;
         #     # reward = -100
         else:

@@ -462,7 +462,34 @@ class SDFNoMaxStepSizeFoundException(Exception):
 class ConfigLoadException(Exception):
     pass
 
-def quaternion_to_euler(x, y, z, w):
+def quaternion_to_euler(x,y,z,w):
+    test = x*y + z*w
+
+    if test > 0.499: #singularity at north pole
+        heading = 2 * math.atan2(x,w)
+        attitude = np.pi/2
+        bank = 0
+        return [attitude, heading, bank]
+
+
+    if test < -0.499:
+        heading = -2 * math.atan2(x,w)
+        attitude = - np.pi/2
+        bank = 0
+        return [attitude, heading, bank]
+
+
+    sqx = x*x
+    sqy = y*y
+    sqz = z*z
+    heading = math.atan2(2*y*w-2*x*z , 1 - 2*sqy - 2*sqz)
+    attitude = math.asin(2*test)
+    bank = math.atan2(2*x*w-2*y*z , 1 - 2*sqx - 2*sqz)
+
+    return [attitude, heading, bank]  # really is yaw,pitch,roll
+
+
+def quaternion_to_euler_1(x, y, z, w):
 
     t0 = +2.0 * (w * x + y * z)
     t1 = +1.0 - 2.0 * (x * x + y * y)
