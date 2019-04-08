@@ -6,35 +6,24 @@ logger = logging.getLogger("gymfc")
 from math import pi
 
 
-import serial
-
-#
-#        # Used to hold data coming over UART
-# while(1):
-#     # Wait until there is data waiting in the serial buffer
-#     if(serialPort.in_waiting > 0):
-#         # Read data out of the buffer until a carraige return / new line is found
-#         serialString = serialPort.readline()
-#         # Print the contents of the serial data
-#         print(int(serialString.decode('utf-8')))
-#
-#         # Tell the device connected over the serial port that we recevied the data!
-#         # The b at the beginning is used to indicate bytes!
-#         serialResponse = "-255 \n"
-#         serialPort.write(serialResponse.encode("utf-8"))
-#
-#
-import math
-import gym
-from gym import spaces, logger
-from gym.utils import seeding
 import numpy as np
+
+
+import datetime as dt
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+
+
+
+# This function is called periodically from FuncAnimation
+
 
 class AttitudeFlightControlEnv(GazeboEnv):
     def __init__(self, **kwargs):
         self.last_angular_part = 0;
         self.last_theta_norm=0;
         self.error_raw=np.zeros(7)
+        self.index = 0
         self.max_sim_time = kwargs["max_sim_time"]
 
         np.random.seed(seed=None)
@@ -81,14 +70,74 @@ class AttitudeFlightControlEnv(GazeboEnv):
         """ sample a random angle """
         return np.asfarray([0,0,0])
 
+
+
 class CaRL_env(AttitudeFlightControlEnv):
     def __init__(self, **kwargs):
+
         self.observation_history = []
         self.memory_size = kwargs["memory_size"]
         super(CaRL_env, self).__init__(**kwargs)
         self.omega_target = self.sample_target()
-
+        self.last_reward=0;
         # self.render()
+
+        self.fig, self.ax = plt.subplots(2,sharex=True)
+        # self.ax = self.fig.add_subplot(211)
+        self.xs = []
+        self.ys = []
+        self.x1 = []
+        self.x2 = []
+        self.x3 = []
+        self.x4 = []
+
+    def animate(self):
+        # Read temperature (Celsius) from TMP102
+
+        self.index = self.index + 1
+        # print(self.index)
+        if self.index >= 100:
+
+            # Add x and y to lists
+            self.xs.append(dt.datetime.now().strftime('%H:%M:%S.%f'))
+            self.ys.append(self.last_reward)
+
+            self.x1.append(self.last_action[0])
+            self.x2.append(self.last_action[1])
+            self.x3.append(self.last_action[2])
+            self.x4.append(self.last_action[3])
+
+            # print("rew: ", self.last_reward)
+
+            # Limit x and y lists to 20 items
+            self.xs = self.xs[-20:]
+            self.ys = self.ys[-20:]
+
+            self.x1 = self.x1[-20:]
+            self.x2 = self.x2[-20:]
+            self.x3 = self.x3[-20:]
+            self.x4 = self.x4[-20:]
+
+            # Draw x and y lists
+            self.ax[0].clear()
+            self.ax[1].clear()
+
+            self.ax[0].plot(self.xs, self.ys )
+            plt.title('Reward')
+            plt.ylabel('Reward value')
+
+            self.ax[1].plot(self.xs, self.x1 ,'r',self.xs, self.x2 ,'g',self.xs, self.x3 ,'b',self.xs, self.x4 ,'k' )
+            plt.ylabel('Actions value')
+            plt.xlabel('Time')
+            # Format plot
+            plt.xticks(rotation=45, ha='right')
+            plt.subplots_adjust(bottom=0.30)
+            plt.show(block=False)
+            plt.pause(0.001)
+            self.index = 0
+
+
+# Set up plot to call animate() function periodically
 
 
     def step(self, action):
@@ -107,6 +156,10 @@ class CaRL_env(AttitudeFlightControlEnv):
         self.observation_history.append(np.concatenate([state, self.obs.motor_velocity]))
 
         reward = self.compute_reward()
+        self.last_reward = reward;
+        self.animate()
+        # self.ani = animation.FuncAnimation(self.fig, self.animate, interval=1000)
+
         # print("pitch:", self.obs.euler[1])
         if self.sim_time >= self.max_sim_time:
             done = True
