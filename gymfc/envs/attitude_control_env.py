@@ -41,7 +41,9 @@ class AttitudeFlightControlEnv(GazeboEnv):
         # print("reward Y: ", rew_Y)
 
         # reward = - (rew_P+rew_R+rew_Y) / 3
-        reward = 1 - np.clip((rew_P + rew_R)/2,0,1)
+        # reward = 1 - np.clip((rew_P + rew_R)/2,0,1)
+        reward = - (rew_P + rew_R ) / 2
+        reward = 1 - np.clip(((np.exp(reward) - 1) / (np.exp(1) - 1)),0,1)
 
         # reward = (np.exp(reward) - 1) / (np.exp(1) - 1)
 
@@ -180,7 +182,7 @@ class CaRL_env(AttitudeFlightControlEnv):
         reward = self.compute_reward()
         self.last_reward = reward
 
-        self.animate()
+        # self.animate()
 
         # print("pitch:", self.obs.euler[1])
         if self.sim_time >= self.max_sim_time:
