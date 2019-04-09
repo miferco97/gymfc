@@ -30,8 +30,8 @@ class AttitudeFlightControlEnv(GazeboEnv):
         super(AttitudeFlightControlEnv, self).__init__()
 
     def compute_reward(self):
-        rew_R = np.abs(self.obs.euler[0]/(pi/2))
-        rew_P = np.abs(self.obs.euler[1]/(pi/2))
+        rew_R = np.abs(self.obs.euler[0]/(pi))
+        rew_P = np.abs(self.obs.euler[1]/(pi))
         rew_Y = np.abs(self.obs.euler[2]/pi)
 
         # print("reward R: ", rew_R)
@@ -40,9 +40,10 @@ class AttitudeFlightControlEnv(GazeboEnv):
 
         # reward = - (rew_P+rew_R+rew_Y) / 3
         # reward = 1 - np.clip((rew_P + rew_R)/2,0,1)
-        reward = (rew_P + rew_R + rew_Y) / 3
-        reward = 1 - np.clip(((np.exp(reward) - 1) / (np.exp(1) - 1)),0,1)
+        
+        reward = 1 - np.clip(((rew_P + rew_R + rew_Y) / 3),0,1)
 
+        # reward = 1 - np.clip(((np.exp(reward) - 1) / (np.exp(1) - 1)),0,1)
         # reward = (np.exp(reward) - 1) / (np.exp(1) - 1)
 
         # print("total reward",reward)
