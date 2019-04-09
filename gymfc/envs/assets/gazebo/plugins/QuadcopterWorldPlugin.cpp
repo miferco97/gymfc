@@ -330,7 +330,7 @@ void QuadcopterWorldPlugin::softReset(){
 
 // r = 0;
 // p = 0;
- y = 0;
+// y = 0;
 
 //    gzdbg <<"r: "<<r<<" p:" <<p<<" :y "<< y <<"\n";
  ignition::math::Pose3d initial_pos(0,0,1,r,p,y);
