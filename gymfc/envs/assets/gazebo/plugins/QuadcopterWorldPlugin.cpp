@@ -328,10 +328,10 @@ void QuadcopterWorldPlugin::softReset(){
  float p = 0.85*(((rand()%314)-(314/2))/100.0);
  float y = ((rand()%(314*2)-(314))/100.0);
 
- /*r = 0;
- p = 0;
+// r = 0;
+// p = 0;
  y = 0;
-*/
+
 //    gzdbg <<"r: "<<r<<" p:" <<p<<" :y "<< y <<"\n";
  ignition::math::Pose3d initial_pos(0,0,1,r,p,y);
 //   ignition::math::Pose3d initial_pos(0,0,1,r,p,0);
