@@ -34,13 +34,18 @@ class AttitudeFlightControlEnv(GazeboEnv):
         rew_P = np.abs(self.obs.euler[1]/(pi))
         rew_Y = np.abs(self.obs.euler[2]/pi)
 
+        rew_R = np.clip(((np.exp(rew_R) - 1) / (np.exp(1) - 1)), 0, 1)
+        rew_P = np.clip(((np.exp(rew_P) - 1) / (np.exp(1) - 1)), 0, 1)
+        rew_Y = np.clip(((np.exp(rew_Y) - 1) / (np.exp(1) - 1)), 0, 1)
+
+
         # print("reward R: ", rew_R)
         # print("reward P: ", rew_P)
         # print("reward Y: ", rew_Y)
 
         # reward = - (rew_P+rew_R+rew_Y) / 3
         # reward = 1 - np.clip((rew_P + rew_R)/2,0,1)
-        
+
         reward = 1 - np.clip(((rew_P + rew_R + rew_Y) / 3),0,1)
 
         # reward = 1 - np.clip(((np.exp(reward) - 1) / (np.exp(1) - 1)),0,1)
