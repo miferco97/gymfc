@@ -41,7 +41,9 @@ class AttitudeFlightControlEnv(GazeboEnv):
         # reward = - (rew_P+rew_R+rew_Y) / 3
         # reward = 1 - np.clip((rew_P + rew_R)/2,0,1)
 
-        reward = np.power(1 - np.clip(((rew_P + rew_R + rew_Y) / 3),0,1),2)
+        actual_reward = 1 - np.clip(((rew_P + rew_R + rew_Y) / 3),0,1)
+        reward = actual_reward
+        self.last_reward = actual_reward
 
         # reward = 1 - np.clip(((np.exp(reward) - 1) / (np.exp(1) - 1)),0,1)
         # reward = (np.exp(reward) - 1) / (np.exp(1) - 1)
@@ -68,6 +70,7 @@ class AttitudeFlightControlEnv(GazeboEnv):
         reward = - actual_theta_norm #- 0.001 * action_part
         #reward = self.last_theta_norm - actual_theta_norm
         # self.last_theta_norm = actual_theta_norm
+
 
         return reward
 
@@ -179,7 +182,6 @@ class CaRL_env(AttitudeFlightControlEnv):
         self.observation_history.append(np.concatenate([state, self.obs.motor_velocity]))
 
         reward = self.compute_reward()
-        self.last_reward = reward
 
         # self.animate()
 
