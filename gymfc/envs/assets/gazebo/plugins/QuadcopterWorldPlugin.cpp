@@ -138,8 +138,8 @@ void QuadcopterWorldPlugin::Load(physics::WorldPtr _world, sdf::ElementPtr _sdf)
 
   const	std::string modelName = "testbench";
   // Force pause because we drive the simulation steps
-  this->_world->SetPaused(TRUE);
-
+//  this->_world->SetPaused(TRUE);
+    this ->_world->SetPaused(FALSE);
   // Controller time control.
   this->lastControllerUpdateTime = 0;
 

@@ -5,7 +5,7 @@ import numpy as np
 import time
 
 env = gym.make('CaRL_GymFC-MotorVel_M4_Ep-v0')
-env.reset()
+# env.reset()
 # env.render()
 # print(env.observation_space.shape)
 while True:
