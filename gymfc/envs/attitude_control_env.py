@@ -213,7 +213,7 @@ class CaRL_env(AttitudeFlightControlEnv):
         """ Get the current state """
 
 
-        return np.zeros(7)
+        return np.zeros(11)
 
     def reset(self):
         self.get_random_quat()

@@ -7,7 +7,8 @@ import time
 env = gym.make('CaRL_GymFC-MotorVel_M4_Ep-v0')
 # env.reset()
 # env.render()
-# print(env.observation_space.shape)
+print(env.observation_space.shape)
+
 while True:
 
     for i in range(100000000):
