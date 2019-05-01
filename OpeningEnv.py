@@ -16,7 +16,7 @@ while True:
         # action = np.asarray([-1,-1 ,-0.8,-0.8])
         state, reward, done, info = env.step(action)
         # print(env.action_space.low)
-        # print("state: ", state)
+        print("state: ", state)
         # print("velocidad: ", state[0:3])
         #print("angulo: ", state[3:6])
         # print("ref: ", state[6:10])

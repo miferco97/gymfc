@@ -22,17 +22,43 @@ class AttitudeFlightControlEnv(GazeboEnv):
     def __init__(self, **kwargs):
         self.last_angular_part = 0;
         self.last_theta_norm=0;
-        self.error_raw=np.zeros(7)
+        self.error_raw=np.zeros(11)
+        self.random_quaternion=np.zeros(4)
+        self.random_euler=np.zeros(3)
         self.index = 0
         self.max_sim_time = kwargs["max_sim_time"]
 
         np.random.seed(seed=None)
         super(AttitudeFlightControlEnv, self).__init__()
 
+
+    def get_random_quat(self):
+
+        pitch = 0.9 * (pi * np.random.random_sample() - pi / 2)
+        roll = 0.9 * (pi * np.random.random_sample() - pi / 2)
+        yaw = 0.9 * (2*pi * np.random.random_sample() - pi)
+
+        self.random_euler[0] = roll
+        self.random_euler[1] = pitch
+        self.random_euler[2] = yaw
+
+        cy = math.cos(yaw * 0.5)
+        sy = math.sin(yaw * 0.5)
+        cp = math.cos(pitch * 0.5)
+        sp = math.sin(pitch * 0.5)
+        cr = math.cos(roll * 0.5)
+        sr = math.sin(roll * 0.5)
+
+        self.random_quaternion[0] = cy * cp * cr + sy * sp * sr
+        self.random_quaternion[1] = cy * cp * sr - sy * sp * cr
+        self.random_quaternion[2] = sy * cp * sr + cy * sp * cr
+        self.random_quaternion[3] = sy * cp * cr - cy * sp * sr
+
     def compute_reward(self):
-        rew_R = np.abs(self.obs.euler[0]/(pi))
-        rew_P = np.abs(self.obs.euler[1]/(pi))
-        rew_Y = np.abs(self.obs.euler[2]/(2*pi))
+
+        rew_R = np.abs((self.obs.euler[0]-self.random_euler[0])/(pi))
+        rew_P = np.abs((self.obs.euler[1]-self.random_euler[1])/(pi))
+        rew_Y = np.abs((self.obs.euler[2]-self.random_euler[2])/(2*pi))
 
         # print("reward R: ", rew_R)
         # print("reward P: ", rew_P)
@@ -41,7 +67,7 @@ class AttitudeFlightControlEnv(GazeboEnv):
         # reward = - (rew_P+rew_R+rew_Y) / 3
         # reward = 1 - np.clip((rew_P + rew_R)/2,0,1)
 
-        actual_reward = np.power(1 - np.clip(((rew_P + rew_R + rew_Y) / 3),0,1),3)
+        actual_reward = np.power(1 - np.clip(((rew_P + rew_R + rew_Y) / 3),0,1),2)
         reward = actual_reward
         self.last_reward = actual_reward
 
@@ -53,28 +79,6 @@ class AttitudeFlightControlEnv(GazeboEnv):
 
         return reward
 
-    def compute_reward_1(self):
-
-        ref_quat = np.asarray([1,0,0,0])
-        actual_quat = self.obs.orientation_quat
-        # norm_cuat = np.sqrt(np.sum(np.power(self.obs.orientation_quat,2),axis=0))
-        # print("norm_cuat",norm_cuat)
-        # print("actual cuat",actual_quat)
-        theta=2*np.arccos(np.dot(ref_quat,actual_quat))
-
-
-        # actual_theta_norm = theta/(2*pi)
-        actual_theta_norm = (np.exp(theta/(2*pi)) - 1) /(np.exp(1)-1 + 1e-12)
-        action_part = (np.sum((1 + self.last_action) / 2) / 4)  # action part between [0 y 1]
-
-        reward = - actual_theta_norm #- 0.001 * action_part
-        #reward = self.last_theta_norm - actual_theta_norm
-        # self.last_theta_norm = actual_theta_norm
-
-
-        return reward
-
-        # return -np.clip(np.sum(np.abs(self.error)) / (self.omega_bounds[1] * 3), 0, 1)
 
 
     # def compute_reward(self):
@@ -178,7 +182,10 @@ class CaRL_env(AttitudeFlightControlEnv):
         quat = self.obs.orientation_quat
         self.speeds = self.obs.angular_velocity_rpy / (self.omega_bounds[1])
 
-        state = np.append(quat, self.speeds)
+
+        state_aux = np.append(quat, self.speeds)
+        state=np.append(state_aux,self.random_quaternion)
+
         self.observation_history.append(np.concatenate([state, self.obs.motor_velocity]))
 
         reward = self.compute_reward()
@@ -209,6 +216,7 @@ class CaRL_env(AttitudeFlightControlEnv):
         return np.zeros(7)
 
     def reset(self):
+        self.get_random_quat()
         self.observation_history = []
         return super(CaRL_env, self).reset()
 

@@ -5,8 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="4567d934-7832-4756-89c5-c7896bb3fbb5" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/OpeningEnv.py" beforeDir="false" afterPath="$PROJECT_DIR$/OpeningEnv.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/gymfc/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/gymfc/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gymfc/envs/attitude_control_env.py" beforeDir="false" afterPath="$PROJECT_DIR$/gymfc/envs/attitude_control_env.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -16,11 +17,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/gymfc/envs/attitude_control_env.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="756">
-              <caret line="186" lean-forward="true" selection-start-line="186" selection-end-line="186" />
+            <state relative-caret-position="290">
+              <caret line="69" column="81" selection-start-line="69" selection-start-column="81" selection-end-line="69" selection-end-column="81" />
               <folding>
                 <element signature="e#0#11#0" expanded="true" />
               </folding>
@@ -31,17 +32,17 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/OpeningEnv.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="72">
-              <caret line="8" column="13" selection-start-line="8" selection-start-column="13" selection-end-line="8" selection-end-column="13" />
+            <state relative-caret-position="362">
+              <caret line="28" lean-forward="true" selection-start-line="28" selection-end-line="28" />
             </state>
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/gymfc/__init__.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="162">
-              <caret line="9" column="21" selection-start-line="9" selection-start-column="21" selection-end-line="9" selection-end-column="21" />
+              <caret line="9" column="22" selection-start-line="9" selection-start-column="22" selection-end-line="9" selection-end-column="22" />
               <folding>
                 <element signature="e#0#42#0" expanded="true" />
               </folding>
@@ -149,8 +150,8 @@
         <option value="$PROJECT_DIR$/gymfc/envs/assets/gazebo/models/quadcopter_attitude_control/model.sdf" />
         <option value="$PROJECT_DIR$/gymfc/envs/assets/gazebo/plugins/QuadcopterWorldPlugin.cpp" />
         <option value="$PROJECT_DIR$/OpeningEnv.py" />
-        <option value="$PROJECT_DIR$/gymfc/envs/attitude_control_env.py" />
         <option value="$PROJECT_DIR$/gymfc/__init__.py" />
+        <option value="$PROJECT_DIR$/gymfc/envs/attitude_control_env.py" />
       </list>
     </option>
   </component>
@@ -251,6 +252,7 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="59" y="27" width="1861" height="1053" extended-state="6" />
+    <editor active="true" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.1702938" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
@@ -264,7 +266,7 @@
       <window_info anchor="bottom" id="TODO" order="6" sideWeight="0.49781898" weight="0.32838982" />
       <window_info anchor="bottom" id="Version Control" order="7" weight="0.32937366" />
       <window_info anchor="bottom" id="Event Log" order="8" side_tool="true" />
-      <window_info anchor="bottom" id="Python Console" order="9" weight="0.32838982" />
+      <window_info anchor="bottom" id="Python Console" order="9" weight="0.32824427" />
       <window_info active="true" anchor="bottom" x="69" y="390" width="1844" height="334" id="Terminal" order="10" sideWeight="0.50218105" visible="true" weight="0.41112322" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
@@ -361,23 +363,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/gymfc/envs/attitude_control_env.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="756">
-          <caret line="186" lean-forward="true" selection-start-line="186" selection-end-line="186" />
-          <folding>
-            <element signature="e#0#11#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/OpeningEnv.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="72">
-          <caret line="8" column="13" selection-start-line="8" selection-start-column="13" selection-end-line="8" selection-end-column="13" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/gymfc/envs/assets/gazebo/plugins/AircraftModelPlugin.cpp">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1908">
@@ -415,12 +400,29 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/OpeningEnv.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="362">
+          <caret line="28" lean-forward="true" selection-start-line="28" selection-end-line="28" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/gymfc/__init__.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="162">
-          <caret line="9" column="21" selection-start-line="9" selection-start-column="21" selection-end-line="9" selection-end-column="21" />
+          <caret line="9" column="22" selection-start-line="9" selection-start-column="22" selection-end-line="9" selection-end-column="22" />
           <folding>
             <element signature="e#0#42#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/gymfc/envs/attitude_control_env.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="290">
+          <caret line="69" column="81" selection-start-line="69" selection-start-column="81" selection-end-line="69" selection-end-column="81" />
+          <folding>
+            <element signature="e#0#11#0" expanded="true" />
           </folding>
         </state>
       </provider>
