@@ -22,7 +22,7 @@ class AttitudeFlightControlEnv(GazeboEnv):
     def __init__(self, **kwargs):
         self.last_angular_part = 0;
         self.last_theta_norm=0;
-        self.error_raw=np.zeros(11)
+        self.error_raw=np.zeros(7)
         self.random_quaternion=np.zeros(4)
         self.random_euler=np.zeros(3)
         self.index = 0
@@ -56,9 +56,13 @@ class AttitudeFlightControlEnv(GazeboEnv):
 
     def compute_reward(self):
 
-        rew_R = np.abs((self.obs.euler[0]-self.random_euler[0])/(pi))
-        rew_P = np.abs((self.obs.euler[1]-self.random_euler[1])/(pi))
-        rew_Y = np.abs((self.obs.euler[2]-self.random_euler[2])/(2*pi))
+        # rew_R = np.abs((self.obs.euler[0]-self.random_euler[0])/(pi))
+        # rew_P = np.abs((self.obs.euler[1]-self.random_euler[1])/(pi))
+        # rew_Y = np.abs((self.obs.euler[2]-self.random_euler[2])/(2*pi))
+
+        rew_R = np.abs((self.obs.euler[0])/(pi))
+        rew_P = np.abs((self.obs.euler[1])/(pi))
+        rew_Y = np.abs((self.obs.euler[2])/(2*pi))
 
         # print("reward R: ", rew_R)
         # print("reward P: ", rew_P)
@@ -67,7 +71,8 @@ class AttitudeFlightControlEnv(GazeboEnv):
         # reward = - (rew_P+rew_R+rew_Y) / 3
         # reward = 1 - np.clip((rew_P + rew_R)/2,0,1)
 
-        actual_reward = np.power(1 - np.clip(((rew_P + rew_R + rew_Y) / 3),0,1),2)
+        # actual_reward = np.power(1 - np.clip(((rew_P + rew_R + rew_Y) / 3),0,1),2)
+        actual_reward = 1 - np.clip(((rew_P + rew_R + rew_Y) / 3),0,1)
         reward = actual_reward
         self.last_reward = actual_reward
 
@@ -179,12 +184,13 @@ class CaRL_env(AttitudeFlightControlEnv):
 
         self.obs = self.step_sim(action)
 
-        quat = self.obs.orientation_quat
+        # quat = self.obs.orientation_quat
         self.speeds = self.obs.angular_velocity_rpy / (self.omega_bounds[1])
 
+        # state = np.append(quat, self.speeds)
+        state = np.append(self.obs.euler, self.speeds)
 
-        state_aux = np.append(quat, self.speeds)
-        state=np.append(state_aux,self.random_quaternion)
+        # state=np.append(state_aux,self.random_quaternion)
 
         self.observation_history.append(np.concatenate([state, self.obs.motor_velocity]))
 
@@ -212,11 +218,10 @@ class CaRL_env(AttitudeFlightControlEnv):
     def state(self):
         """ Get the current state """
 
-
-        return np.zeros(11)
+        return np.zeros(6)
 
     def reset(self):
-        self.get_random_quat()
+        # self.get_random_quat()
         self.observation_history = []
         return super(CaRL_env, self).reset()
 
