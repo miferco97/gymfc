@@ -42,6 +42,8 @@ class AttitudeFlightControlEnv(GazeboEnv):
         self.random_euler[1] = pitch
         self.random_euler[2] = yaw
 
+
+
         cy = math.cos(yaw * 0.5)
         sy = math.sin(yaw * 0.5)
         cp = math.cos(pitch * 0.5)
@@ -56,13 +58,13 @@ class AttitudeFlightControlEnv(GazeboEnv):
 
     def compute_reward(self):
 
-        # rew_R = np.abs((self.obs.euler[0]-self.random_euler[0])/(pi))
-        # rew_P = np.abs((self.obs.euler[1]-self.random_euler[1])/(pi))
-        # rew_Y = np.abs((self.obs.euler[2]-self.random_euler[2])/(2*pi))
+        rew_R = np.abs((self.obs.euler[0]-self.random_euler[0])/(pi))
+        rew_P = np.abs((self.obs.euler[1]-self.random_euler[1])/(pi))
+        rew_Y = np.abs((self.obs.euler[2]-self.random_euler[2])/(2*pi))
 
-        rew_R = np.abs((self.obs.euler[0])/(pi))
-        rew_P = np.abs((self.obs.euler[1])/(pi))
-        rew_Y = np.abs((self.obs.euler[2])/(2*pi))
+        # rew_R = np.abs((self.obs.euler[0])/(pi))
+        # rew_P = np.abs((self.obs.euler[1])/(pi))
+        # rew_Y = np.abs((self.obs.euler[2])/(2*pi))
 
         # print("reward R: ", rew_R)
         # print("reward P: ", rew_P)
@@ -188,7 +190,12 @@ class CaRL_env(AttitudeFlightControlEnv):
         self.speeds = self.obs.angular_velocity_rpy / (self.omega_bounds[1])
 
         # state = np.append(quat, self.speeds)
-        state = np.append(self.obs.euler, self.speeds)
+
+        self.error_RPY = (self.random_euler - self.obs.euler)/(2*pi)
+
+        state = np.append(self.error_RPY, self.speeds)
+
+        # state = np.append(self.obs.euler, self.speeds)
 
         # state=np.append(state_aux,self.random_quaternion)
 
