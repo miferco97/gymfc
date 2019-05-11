@@ -72,7 +72,7 @@ class AttitudeFlightControlEnv(GazeboEnv):
         # reward = 1 - np.clip((rew_P + rew_R)/2,0,1)
 
         # actual_reward = np.power(1 - np.clip(((rew_P + rew_R + rew_Y) / 3),0,1),2)
-        actual_reward = np.power(1 - np.clip(((rew_P + rew_R + rew_Y) / 3),0,1),2)
+        actual_reward = np.power(1 - np.clip(((rew_P + rew_R + rew_Y) / 3),0,1),3)
         reward = actual_reward
         self.last_reward = actual_reward
 
