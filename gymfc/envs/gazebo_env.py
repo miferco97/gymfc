@@ -433,7 +433,7 @@ class GazeboEnv(gym.Env):
         self.last_sim_time = -self.stepsize
         self.loop.run_until_complete(self._step_sim(self.action_space.low, reset=True))
         self.omega_target = self.sample_target().copy()
-        assert np.isclose(self.sim_time, 0.0, 1e-6), "sim time after reset is incorrect, {} ".format(self.sim_time)
+        # assert np.isclose(self.sim_time, 0.0, 1e-6), "sim time after reset is incorrect, {} ".format(self.sim_time)
         return self.state()
 
     def close(self):

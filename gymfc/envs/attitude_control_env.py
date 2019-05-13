@@ -43,7 +43,7 @@ class AttitudeFlightControlEnv(GazeboEnv):
         self.random_euler[2] = yaw
 
 
-
+        print (self.random_euler[0],self.random_euler[1],self.random_euler[2])
         cy = math.cos(yaw * 0.5)
         sy = math.sin(yaw * 0.5)
         cp = math.cos(pitch * 0.5)
@@ -58,13 +58,13 @@ class AttitudeFlightControlEnv(GazeboEnv):
 
     def compute_reward(self):
 
-        rew_R = np.abs((self.obs.euler[0]-self.random_euler[0])/(pi))
-        rew_P = np.abs((self.obs.euler[1]-self.random_euler[1])/(pi))
-        rew_Y = np.abs((self.obs.euler[2]-self.random_euler[2])/(2*pi))
+        # rew_R = np.abs((self.obs.euler[0]-self.random_euler[0])/(pi))
+        # rew_P = np.abs((self.obs.euler[1]-self.random_euler[1])/(pi))
+        # rew_Y = np.abs((self.obs.euler[2]-self.random_euler[2])/(2*pi))
 
-        # rew_R = np.abs((self.obs.euler[0])/(pi))
-        # rew_P = np.abs((self.obs.euler[1])/(pi))
-        # rew_Y = np.abs((self.obs.euler[2])/(2*pi))
+        rew_R = np.abs((self.obs.euler[0])/(pi))
+        rew_P = np.abs((self.obs.euler[1])/(pi))
+        rew_Y = np.abs((self.obs.euler[2])/(2*pi))
 
         # print("reward R: ", rew_R)
         # print("reward P: ", rew_P)
@@ -74,7 +74,7 @@ class AttitudeFlightControlEnv(GazeboEnv):
         # reward = 1 - np.clip((rew_P + rew_R)/2,0,1)
 
         # actual_reward = np.power(1 - np.clip(((rew_P + rew_R + rew_Y) / 3),0,1),2)
-        actual_reward = np.power(1 - np.clip(((rew_P + rew_R + rew_Y) / 3),0,1),4)
+        actual_reward = np.power(1 - np.clip(((rew_P + rew_R + rew_Y) / 3),0,1),10)
         reward = actual_reward
         self.last_reward = actual_reward
 
@@ -182,8 +182,21 @@ class CaRL_env(AttitudeFlightControlEnv):
         # print("action:", action)
         # Step the sim
 
-        self.last_action = action
 
+        # action = action + 1
+
+        # the motors only can use a 50% of the power
+        limitation = False
+        if limitation :
+            coef_red = 3
+            action /= coef_red
+            action -= 1-(1/coef_red)
+
+            action_bias = 1
+            action += action_bias
+
+        self.last_action = action
+        # print(action)
         self.obs = self.step_sim(action)
 
         # quat = self.obs.orientation_quat
@@ -193,17 +206,18 @@ class CaRL_env(AttitudeFlightControlEnv):
 
         self.error_RPY = (self.random_euler - self.obs.euler)/(2*pi)
 
-        state = np.append(self.error_RPY, self.speeds)
+        # state = np.append(self.error_RPY, self.speeds)
 
-        # state = np.append(self.obs.euler, self.speeds)
-
+        state = np.append(self.obs.euler, self.speeds)
+        # state[1] = state[1] - 0.26
+        # state[2] = state[2] - 1
         # state=np.append(state_aux,self.random_quaternion)
 
         self.observation_history.append(np.concatenate([state, self.obs.motor_velocity]))
 
         reward = self.compute_reward()
 
-        # self.animate()
+        self.animate()
 
         # print("pitch:", self.obs.euler[1])
         if self.sim_time >= self.max_sim_time:

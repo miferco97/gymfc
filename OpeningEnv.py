@@ -11,17 +11,17 @@ print(env.observation_space.shape)
 
 while True:
 
-    for i in range(100000000):
+    for i in range(100000):
 
         action = env.action_space.sample()
         # action = np.asarray([-1,-1 ,-0.8,-0.8])
         state, reward, done, info = env.step(action)
         # print(env.action_space.low)
-        print("state: ", state)
+        # print("state: ", state)
         # print("velocidad: ", state[0:3])
         #print("angulo: ", state[3:6])
         # print("ref: ", state[6:10])
-        #print(action)
+        # print(action)
         # print(env.observation_space.shape)
         # print("reward: ", reward)
         # print(env.omega_target)
