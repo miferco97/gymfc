@@ -5,6 +5,8 @@ import logging
 logger = logging.getLogger("gymfc")
 from math import pi
 
+import time
+
 
 import numpy as np
 
@@ -27,6 +29,8 @@ class AttitudeFlightControlEnv(GazeboEnv):
         self.random_euler=np.zeros(3)
         self.index = 0
         self.max_sim_time = kwargs["max_sim_time"]
+        self.incr_action=np.zeros(4)
+        self.last_action = np.zeros(4)
 
         np.random.seed(seed=None)
         super(AttitudeFlightControlEnv, self).__init__()
@@ -38,9 +42,13 @@ class AttitudeFlightControlEnv(GazeboEnv):
         roll = 0.9 * (pi * np.random.random_sample() - pi / 2)
         yaw = 0.9 * (2*pi * np.random.random_sample() - pi)
 
-        self.random_euler[0] = roll
-        self.random_euler[1] = pitch
-        self.random_euler[2] = yaw
+        # self.random_euler[0] = roll
+        # self.random_euler[1] = pitch
+        # self.random_euler[2] = yaw
+
+        self.random_euler[0] = 0.3
+        self.random_euler[1] = 0
+        self.random_euler[2] = 0
 
 
         print (self.random_euler[0],self.random_euler[1],self.random_euler[2])
@@ -64,7 +72,7 @@ class AttitudeFlightControlEnv(GazeboEnv):
 
         rew_R = np.abs((self.obs.euler[0])/(pi))
         rew_P = np.abs((self.obs.euler[1])/(pi))
-        rew_Y = np.abs((self.obs.euler[2])/(2*pi))
+        rew_Y = np.abs((self.obs.euler[2])/(pi))
 
         # print("reward R: ", rew_R)
         # print("reward P: ", rew_P)
@@ -74,7 +82,7 @@ class AttitudeFlightControlEnv(GazeboEnv):
         # reward = 1 - np.clip((rew_P + rew_R)/2,0,1)
 
         # actual_reward = np.power(1 - np.clip(((rew_P + rew_R + rew_Y) / 3),0,1),2)
-        actual_reward = np.power(1 - np.clip(((rew_P + rew_R + rew_Y) / 3),0,1),10)
+        actual_reward = np.power(1 - np.clip(((rew_P + rew_R + rew_Y) / 3),0,1),4) - 0.1 * np.sum(np.abs(self.incr_action))/4
         reward = actual_reward
         self.last_reward = actual_reward
 
@@ -118,7 +126,7 @@ class CaRL_env(AttitudeFlightControlEnv):
         self.omega_target = self.sample_target()
         self.last_reward=0;
         self.render()
-
+        self.start = time.time()
         self.fig, self.ax = plt.subplots(2,sharex=True)
         # self.ax = self.fig.add_subplot(211)
         self.xs = []
@@ -178,6 +186,10 @@ class CaRL_env(AttitudeFlightControlEnv):
 
 
     def step(self, action):
+        end = time.time()
+        # print(1/(end - self.start))
+        self.start = time.time()
+
         action = np.clip(action, self.action_space.low, self.action_space.high)
         # print("action:", action)
         # Step the sim
@@ -194,6 +206,7 @@ class CaRL_env(AttitudeFlightControlEnv):
 
             action_bias = 1
             action += action_bias
+        self.incr_action = action - self.last_action
 
         self.last_action = action
         # print(action)
@@ -201,14 +214,22 @@ class CaRL_env(AttitudeFlightControlEnv):
 
         # quat = self.obs.orientation_quat
         self.speeds = self.obs.angular_velocity_rpy / (self.omega_bounds[1])
-
+        # print(self.omega_bounds)
         # state = np.append(quat, self.speeds)
 
+        euler_normalized = self.obs.euler / np.asarray([pi,pi,pi])
+        # euler_normalized[0] += 0.;
         self.error_RPY = (self.random_euler - self.obs.euler)/(2*pi)
 
         # state = np.append(self.error_RPY, self.speeds)
 
-        state = np.append(self.obs.euler, self.speeds)
+        state = np.append(euler_normalized, self.speeds)
+
+        # fd = open('/home/miguel/Desktop/document.csv', 'a')
+        # fd.write(str(state[0])+' '+str(state[1])+' '+str(state[2]) +' '+ str(state[3]) +' '+ str(state[4]) +' '+ str(state[5])+' ' + str(action[0]) +' '+ str(action[1]) +' '+ str(action[2]) +' '+ str(action[3]) + '\n')
+        # fd.close()
+
+        # print(state)
         # state[1] = state[1] - 0.26
         # state[2] = state[2] - 1
         # state=np.append(state_aux,self.random_quaternion)
@@ -217,7 +238,7 @@ class CaRL_env(AttitudeFlightControlEnv):
 
         reward = self.compute_reward()
 
-        self.animate()
+        # self.animate()
 
         # print("pitch:", self.obs.euler[1])
         if self.sim_time >= self.max_sim_time:
