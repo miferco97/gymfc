@@ -42,13 +42,13 @@ class AttitudeFlightControlEnv(GazeboEnv):
         roll = 0.9 * (pi * np.random.random_sample() - pi / 2)
         yaw = 0.9 * (2*pi * np.random.random_sample() - pi)
 
-        # self.random_euler[0] = roll
-        # self.random_euler[1] = pitch
-        # self.random_euler[2] = yaw
+        self.random_euler[0] = roll
+        self.random_euler[1] = pitch
+        self.random_euler[2] = yaw
 
-        self.random_euler[0] = 0.3
-        self.random_euler[1] = 0
-        self.random_euler[2] = 0
+        # self.random_euler[0] = 0.3
+        # self.random_euler[1] = 0
+        # self.random_euler[2] = 0
 
 
         print (self.random_euler[0],self.random_euler[1],self.random_euler[2])
@@ -82,7 +82,7 @@ class AttitudeFlightControlEnv(GazeboEnv):
         # reward = 1 - np.clip((rew_P + rew_R)/2,0,1)
 
         # actual_reward = np.power(1 - np.clip(((rew_P + rew_R + rew_Y) / 3),0,1),2)
-        actual_reward = np.power(1 - np.clip(((rew_P + rew_R + rew_Y) / 3),0,1),4) - 0.1 * np.sum(np.abs(self.incr_action))/4
+        actual_reward = np.power(1 - np.clip(((rew_P + rew_R + rew_Y) / 3),0,1),3) #- 0.1 * np.sum(np.abs(self.incr_action))/4
         reward = actual_reward
         self.last_reward = actual_reward
 

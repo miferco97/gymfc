@@ -320,7 +320,7 @@ void QuadcopterWorldPlugin::processSDF(sdf::ElementPtr _sdf)
 		}
   } 
 }
-
+int times = 0;
 void QuadcopterWorldPlugin::softReset(){
  srand (time(NULL));
 
@@ -333,8 +333,17 @@ void QuadcopterWorldPlugin::softReset(){
 // y = 0;
 
 //    gzdbg <<"r: "<<r<<" p:" <<p<<" :y "<< y <<"\n";
-// ignition::math::Pose3d initial_pos(0,0,1,r,p,y);
- ignition::math::Pose3d initial_pos(0,0,1,0,0.4,-1.6);
+
+ if (times < 3) {
+    r = 0;
+    p = 0;
+    y = 0;
+    times++;
+
+ }
+ ignition::math::Pose3d initial_pos(0,0,1,r,p,y);
+
+// ignition::math::Pose3d initial_pos(0,0,1,0,0.4,-1.6);
 //   ignition::math::Pose3d initial_pos(0,0,1,r,p,0);
 //   ignition::math::Pose3d initial_pos(0,0,1,0,0,0);
 
