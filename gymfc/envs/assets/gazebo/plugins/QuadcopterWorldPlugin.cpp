@@ -401,9 +401,9 @@ void QuadcopterWorldPlugin::loop_thread()
 
                 */
 				
-                if (this->_world->GetSimTime().Double() != 0.0){
+                /*if (this->_world->GetSimTime().Double() != 0.0){
                     gzerr << "Reset sent but clock did not reset, at " << this->_world->GetSimTime().Double() << "\n";
-				}
+				}*/
 			}
 
 			if (this->arduCopterOnline)
