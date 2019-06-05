@@ -124,9 +124,11 @@ class CaRL_env(AttitudeFlightControlEnv):
         self.memory_size = kwargs["memory_size"]
         super(CaRL_env, self).__init__(**kwargs)
         self.omega_target = self.sample_target()
-        self.last_reward=0;
+        self.last_reward=0
         self.render()
-        self.start = time.time()
+        self.start = 0
+        self.start_sim = 0
+        self.FREQUENCY = 70.0
         self.fig, self.ax = plt.subplots(2,sharex=True)
         # self.ax = self.fig.add_subplot(211)
         self.xs = []
@@ -188,7 +190,7 @@ class CaRL_env(AttitudeFlightControlEnv):
     def step(self, action):
         end = time.time()
         # print(1/(end - self.start))
-        self.start = time.time()
+        # self.start = time.time()
 
         action = np.clip(action, self.action_space.low, self.action_space.high)
         # print("action:", action)
@@ -210,7 +212,14 @@ class CaRL_env(AttitudeFlightControlEnv):
 
         self.last_action = action
         # print(action)
-        self.obs = self.step_sim(action)
+        end_sim = self.sim_time
+
+        while (end_sim - self.start_sim) <= (1 / self.FREQUENCY):
+            self.obs = self.step_sim(action)
+            end_sim = self.sim_time
+
+        print(1 / (end_sim - self.start_sim))
+        self.start_sim = self.sim_time
 
         # quat = self.obs.orientation_quat
         self.speeds = self.obs.angular_velocity_rpy / (self.omega_bounds[1])
@@ -265,6 +274,7 @@ class CaRL_env(AttitudeFlightControlEnv):
     def reset(self):
         # self.get_random_quat()
         self.observation_history = []
+        self.start_sim = self.sim_time
         return super(CaRL_env, self).reset()
 
 
