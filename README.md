@@ -81,6 +81,11 @@ export GYMFC_CONFIG=<path_to_gymfc>/examples/configs/iris.config
 
 OPENAI_LOG_FORMAT=tensorboard,log,stdout python -m baselines.run --alg=ppo2 --env=CaRL_GymFC-MotorVel_M4_Ep-v0 --num_timesteps=1e12
 ```
+For loading a pre-trained model, execute:
+
+```
+OPENAI_LOG_FORMAT=tensorboard,log,stdout python -m baselines.run --alg=ppo2 --env=CaRL_GymFC-MotorVel_M4_Ep-v0 --num_timesteps=1e12 --load_path=<path_to_checkpoint>
+```
 
 # Environments
 
