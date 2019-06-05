@@ -413,7 +413,7 @@ void QuadcopterWorldPlugin::loop_thread()
 			this->lastControllerUpdateTime = curTime;
 			if (!this->resetWorld)
 			{
-				this->_world->Step(1);
+				//this->_world->Step(1);
 			}
 		} else {
 			//gzerr << "Command not received t=" << this->_world->SimTime().Double() << "\n";
