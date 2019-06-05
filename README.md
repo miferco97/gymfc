@@ -65,6 +65,23 @@ If you plan to work with the GymFC source code you will want to install it in
 development mode, `pip3 install -e .` from the root directory. You will also
 need to build the plugin manually by running the script
 `gymfc/envs/assets/gazebo/plugins/build_plugin.sh`. 
+
+# Training
+Install Anaconda environment with python3.5 and run:
+```
+export PATH=/home/alejandro/anaconda2/bin:$PATH
+
+source activate <environment_name>
+```
+Make necessary exports and run the training:
+```
+export PYTHONPATH=$PYTHONPATH:<path_to_gymfc>
+
+export GYMFC_CONFIG=<path_to_gymfc>/examples/configs/iris.config
+
+OPENAI_LOG_FORMAT=tensorboard,log,stdout python -m baselines.run --alg=ppo2 --env=CaRL_GymFC-MotorVel_M4_Ep-v0 --num_timesteps=1e12
+```
+
 # Environments
 
 Different environments are available depending on the capabilities of the flight
