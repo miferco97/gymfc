@@ -82,7 +82,7 @@ class AttitudeFlightControlEnv(GazeboEnv):
         # reward = 1 - np.clip((rew_P + rew_R)/2,0,1)
 
         # actual_reward = np.power(1 - np.clip(((rew_P + rew_R + rew_Y) / 3),0,1),2)
-        actual_reward = np.power(1 - np.clip(((rew_P + rew_R + rew_Y) / 3),0,1),3) - 0.001 * np.sum(1+self.last_action)/8
+        actual_reward = np.power(1 - np.clip(((rew_P + rew_R + rew_Y) / 3),0,1),3) #- 0.001 * np.sum(1+self.last_action)/8
         reward = actual_reward
         self.last_reward = actual_reward
 
@@ -124,9 +124,11 @@ class CaRL_env(AttitudeFlightControlEnv):
         self.memory_size = kwargs["memory_size"]
         super(CaRL_env, self).__init__(**kwargs)
         self.omega_target = self.sample_target()
-        self.last_reward=0;
+        self.last_reward=0
         self.render()
-        self.start = time.time()
+        self.start = 0
+        self.start_sim = 0
+
         self.fig, self.ax = plt.subplots(2,sharex=True)
         # self.ax = self.fig.add_subplot(211)
         self.xs = []
@@ -186,9 +188,14 @@ class CaRL_env(AttitudeFlightControlEnv):
 
 
     def step(self, action):
-        end = time.time()
-        # print(1/(end - self.start))
-        self.start = time.time()
+        # end = time.time()
+        # print(1 / (end - self.start))
+        # self.start = time.time()
+
+        # end_sim = self.sim_time
+
+        # print(1 / (end_sim - self.start))
+        # self.start_sim = self.sim_time
 
         action = np.clip(action, self.action_space.low, self.action_space.high)
         # print("action:", action)
@@ -210,7 +217,15 @@ class CaRL_env(AttitudeFlightControlEnv):
 
         self.last_action = action
         # print(action)
-        self.obs = self.step_sim(action)
+
+        end_sim = self.sim_time
+
+        while (end_sim - self.start_sim) <= 0.014:
+            self.obs = self.step_sim(action)
+            end_sim = self.sim_time
+
+        # print(1 / (end_sim - self.start_sim))
+        self.start_sim = self.sim_time
 
         # quat = self.obs.orientation_quat
         self.speeds = self.obs.angular_velocity_rpy / (self.omega_bounds[1])
@@ -225,9 +240,9 @@ class CaRL_env(AttitudeFlightControlEnv):
 
         state = np.append(euler_normalized, self.speeds)
 
-        # fd = open('/home/miguel/Desktop/document.csv', 'a')
-        # fd.write(str(state[0])+' '+str(state[1])+' '+str(state[2]) +' '+ str(state[3]) +' '+ str(state[4]) +' '+ str(state[5])+' ' + str(action[0]) +' '+ str(action[1]) +' '+ str(action[2]) +' '+ str(action[3]) + '\n')
-        # fd.close()
+        fd = open('/home/miguel/Desktop/simData.csv', 'a')
+        fd.write(str(state[0])+' '+str(state[1])+' '+str(state[2]) +' '+ str(state[3]) +' '+ str(state[4]) +' '+ str(state[5])+' ' + str(action[0]) +' '+ str(action[1]) +' '+ str(action[2]) +' '+ str(action[3]) + '\n')
+        fd.close()
 
         # print(state)
         # state[1] = state[1] - 0.26
@@ -265,6 +280,7 @@ class CaRL_env(AttitudeFlightControlEnv):
     def reset(self):
         # self.get_random_quat()
         self.observation_history = []
+        self.start_sim = 0;
         return super(CaRL_env, self).reset()
 
 
