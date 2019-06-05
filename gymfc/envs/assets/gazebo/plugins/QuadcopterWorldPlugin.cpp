@@ -45,7 +45,8 @@ typedef SSIZE_T ssize_t;
 #include <string>
 #include <vector>
 #include <sdf/sdf.hh>
-#include <ignition/math/Filter.hh>
+#include <gazebo/math/Filter.hh>
+#include <gazebo/math/Rand.hh>
 #include <gazebo/common/Assert.hh>
 #include <gazebo/common/Plugin.hh>
 #include <gazebo/msgs/msgs.hh>
@@ -138,8 +139,8 @@ void QuadcopterWorldPlugin::Load(physics::WorldPtr _world, sdf::ElementPtr _sdf)
 
   const	std::string modelName = "testbench";
   // Force pause because we drive the simulation steps
-//  this->_world->SetPaused(TRUE);
-    this ->_world->SetPaused(FALSE);
+  this->_world->SetPaused(TRUE);
+
   // Controller time control.
   this->lastControllerUpdateTime = 0;
 
@@ -152,7 +153,8 @@ void QuadcopterWorldPlugin::processSDF(sdf::ElementPtr _sdf)
   // Get model name
   std::string modelName;
   getSdfParam<std::string>(_sdf, "modelName", modelName, "");
-  this->_model = this->_world->ModelByName(modelName);
+//  this->_model = this->_world->ModelByName(modelName);
+    this->_model = this->_world->GetModel(modelName);
   //TODO Better error handling
   if (!this->_model){
 	  gzerr << "Cant find model " << modelName << ". Aborting plugin.\n";
@@ -222,7 +224,7 @@ void QuadcopterWorldPlugin::processSDF(sdf::ElementPtr _sdf)
       getSdfParam<double>(rotorSDF, "rotorVelocitySlowdownSim",
           rotor.rotorVelocitySlowdownSim, 1);
 
-      if (ignition::math::equal(rotor.rotorVelocitySlowdownSim, 0.0))
+      if (math::equal(rotor.rotorVelocitySlowdownSim, 0.0))
       {
         gzerr << "rotor for joint [" << rotor.jointName
               << "] rotorVelocitySlowdownSim is zero,"
@@ -235,11 +237,11 @@ void QuadcopterWorldPlugin::processSDF(sdf::ElementPtr _sdf)
       getSdfParam<double>(rotorSDF, "samplingRate",
           rotor.samplingRate, rotor.samplingRate);
 
-      // use ignition::math::Filter
-      rotor.velocityFilter.Fc(rotor.frequencyCutoff, rotor.samplingRate);
+      // use math::Filter
+      rotor.velocityFilter.SetFc(rotor.frequencyCutoff, rotor.samplingRate);
 
       // initialize filter to zero value
-      rotor.velocityFilter.Set(0.0);
+      rotor.velocityFilter.SetValue(0.0);
 
       // note to use this
       // rotorVelocityFiltered = velocityFilter.Process(rotorVelocityRaw);
@@ -280,7 +282,7 @@ void QuadcopterWorldPlugin::processSDF(sdf::ElementPtr _sdf)
   // Get sensors
   std::string imuName;
   getSdfParam<std::string>(_sdf, "imuName", imuName, "imu_sensor");
-  std::string imuScopedName = this->_world->Name()
+  std::string imuScopedName = this->_world->GetName()
       + "::" + this->_model->GetScopedName()
       + "::" + imuName;
   this->imuSensor = std::dynamic_pointer_cast<sensors::ImuSensor>
@@ -311,16 +313,16 @@ void QuadcopterWorldPlugin::processSDF(sdf::ElementPtr _sdf)
 				sdf::ElementPtr randomSDF = angularVelocitySDF->GetElement("random");
 				if (randomSDF->HasElement("seed")){
 						this->resetWithRandomAngularVelocity = TRUE;
-						ignition::math::Rand::Seed(randomSDF->Get<int>("seed"));
-						this->rollLimit = randomSDF->Get<ignition::math::Vector2d>("roll");
-						this->pitchLimit = randomSDF->Get<ignition::math::Vector2d>("pitch");
-						this->yawLimit = randomSDF->Get<ignition::math::Vector2d>("yaw");
+                        math::Rand::SetSeed(randomSDF->Get<int>("seed"));
+                        this->rollLimit = randomSDF->Get<math::Vector2d>("roll");
+                        this->pitchLimit = randomSDF->Get<math::Vector2d>("pitch");
+                        this->yawLimit = randomSDF->Get<math::Vector2d>("yaw");
 				}
 			}
 		}
   } 
 }
-int times = 0;
+
 void QuadcopterWorldPlugin::softReset(){
  srand (time(NULL));
 
@@ -333,19 +335,9 @@ void QuadcopterWorldPlugin::softReset(){
 // y = 0;
 
 //    gzdbg <<"r: "<<r<<" p:" <<p<<" :y "<< y <<"\n";
-
- if (times < 3) {
-    r = 0;
-    p = 0;
-    y = 0;
-    times++;
-
- }
- ignition::math::Pose3d initial_pos(0,0,1,r,p,y);
-
-// ignition::math::Pose3d initial_pos(0,0,1,0,0.4,-1.6);
-//   ignition::math::Pose3d initial_pos(0,0,1,r,p,0);
-//   ignition::math::Pose3d initial_pos(0,0,1,0,0,0);
+ math::Pose initial_pos(0,0,1,r,p,y);
+//   math::Pose initial_pos(0,0,1,r,p,0);
+//   math::Pose initial_pos(0,0,1,0,0,0);
 
     this->_world->ResetTime();
     this->_world->ResetEntities(gazebo::physics::Base::BASE);
@@ -371,7 +363,7 @@ void QuadcopterWorldPlugin::loop_thread()
 
 		boost::this_thread::sleep(boost::posix_time::milliseconds(msPeriod));
 
-		gazebo::common::Time curTime = _world->SimTime();
+        gazebo::common::Time curTime = _world->GetSimTime();
 		
 		//Try reading from the socket, if a packet is
 		//available update the rotors
@@ -392,7 +384,7 @@ void QuadcopterWorldPlugin::loop_thread()
 
 				while (1)
 				{
-  						ignition::math::Vector3d rates = this->imuSensor->AngularVelocity();
+                        math::Vector3 rates = this->imuSensor->AngularVelocity();
 						// Pitch and Yaw are negative
 						if (std::abs(spR - rates.X()) > error || std::abs(spP + rates.Y()) > error || std::abs(spY + rates.Z()) > error){
 							//gzdbg << "Gyro r=" << rates.X() << " p=" << rates.Y() << " y=" << rates.Z() << "\n";
@@ -409,8 +401,8 @@ void QuadcopterWorldPlugin::loop_thread()
 
                 */
 				
-  				if (this->_world->SimTime().Double() != 0.0){
-					gzerr << "Reset sent but clock did not reset, at " << this->_world->SimTime().Double() << "\n";
+                if (this->_world->GetSimTime().Double() != 0.0){
+                    gzerr << "Reset sent but clock did not reset, at " << this->_world->GetSimTime().Double() << "\n";
 				}
 			}
 
@@ -638,7 +630,7 @@ void QuadcopterWorldPlugin::SendState(bool motorCommandProcessed) const
   // send_fdm
   fdmPacket pkt;
 
-  pkt.timestamp = this->_world->SimTime().Double();
+  pkt.timestamp = this->_world->GetSimTime().Double();
 
   for (size_t i = 0; i < this->rotors.size(); ++i)
   {
@@ -650,24 +642,24 @@ void QuadcopterWorldPlugin::SendState(bool motorCommandProcessed) const
   //   z down
 
   // get linear acceleration in body frame
-  ignition::math::Vector3d linearAccel =
+    math::Vector3 linearAccel =
     this->imuSensor->LinearAcceleration();
 
   // copy to pkt
-  pkt.imuLinearAccelerationXYZ[0] = linearAccel.X();
-  pkt.imuLinearAccelerationXYZ[1] = linearAccel.Y();
-  pkt.imuLinearAccelerationXYZ[2] = linearAccel.Z();
+  pkt.imuLinearAccelerationXYZ[0] = linearAccel.x;
+  pkt.imuLinearAccelerationXYZ[1] = linearAccel.y;
+  pkt.imuLinearAccelerationXYZ[2] = linearAccel.z;
 
   // gzerr << "lin accel [" << linearAccel << "]\n";
 
   // get angular velocity in body frame
-  ignition::math::Vector3d angularVel =
+  math::Vector3 angularVel =
     this->imuSensor->AngularVelocity();
 
   // copy to pkt
-  pkt.imuAngularVelocityRPY[0] = angularVel.X();
-  pkt.imuAngularVelocityRPY[1] = angularVel.Y();
-  pkt.imuAngularVelocityRPY[2] = angularVel.Z();
+  pkt.imuAngularVelocityRPY[0] = angularVel.x;
+  pkt.imuAngularVelocityRPY[1] = angularVel.y;
+  pkt.imuAngularVelocityRPY[2] = angularVel.z;
 
 
 
@@ -694,38 +686,38 @@ void QuadcopterWorldPlugin::SendState(bool motorCommandProcessed) const
 
   // gazeboToNED brings us from gazebo model: x-forward, y-right, z-down
   // to the aerospace convention: x-forward, y-left, z-up
-  ignition::math::Pose3d gazeboToNED(0, 0, 0, IGN_PI, 0, 0);
+  math::Pose gazeboToNED(0, 0, 0, IGN_PI, 0, 0);
 
   // model world pose brings us to model, x-forward, y-left, z-up
   // adding gazeboToNED gets us to the x-forward, y-right, z-down
-  ignition::math::Pose3d worldToModel = gazeboToNED +
-    this->_model->WorldPose();
+  math::Pose worldToModel = gazeboToNED +
+    this->_model->GetWorldPose();
 
 //    gzdbg << this->_model->WorldPose()<<"\n";
 
   // get transform from world NED to Model frame
-  ignition::math::Pose3d NEDToModel = worldToModel - gazeboToNED;
+  math::Pose NEDToModel = worldToModel - gazeboToNED;
 
   // gzerr << "ned to model [" << NEDToModel << "]\n";
 
   // N
-  pkt.positionXYZ[0] = NEDToModel.Pos().X();
+  pkt.positionXYZ[0] = NEDToModel.pos.x;
 
   // E
-  pkt.positionXYZ[1] = NEDToModel.Pos().Y();
+  pkt.positionXYZ[1] = NEDToModel.pos.y;
 
   // D
-  pkt.positionXYZ[2] = NEDToModel.Pos().Z();
+  pkt.positionXYZ[2] = NEDToModel.pos.z;
 
   // imuOrientationQuat is the rotation from world NED frame
   // to the quadrotor frame.
 
-  ignition::math::Quaterniond quat =this->imuSensor->Orientation();
+  math::Quaternion quat =this->imuSensor->Orientation();
 
-  pkt.imuOrientationQuat[0] = quat.W();
-  pkt.imuOrientationQuat[1] = quat.X();
-  pkt.imuOrientationQuat[2] = quat.Y();
-  pkt.imuOrientationQuat[3] = quat.Z();
+  pkt.imuOrientationQuat[0] = quat.w;
+  pkt.imuOrientationQuat[1] = quat.x;
+  pkt.imuOrientationQuat[2] = quat.y;
+  pkt.imuOrientationQuat[3] = quat.z;
 
 
 //  pkt.imuOrientationQuat[0] = NEDToModel.Rot().W();
@@ -740,13 +732,13 @@ void QuadcopterWorldPlugin::SendState(bool motorCommandProcessed) const
   // Get NED velocity in body frame *
   // or...
   // Get model velocity in NED frame
-  ignition::math::Vector3d velGazeboWorldFrame =
-    this->_model->GetLink()->WorldLinearVel();
-  ignition::math::Vector3d velNEDFrame =
-    gazeboToNED.Rot().RotateVectorReverse(velGazeboWorldFrame);
-  pkt.velocityXYZ[0] = velNEDFrame.X();
-  pkt.velocityXYZ[1] = velNEDFrame.Y();
-  pkt.velocityXYZ[2] = velNEDFrame.Z();
+  math::Vector3 velGazeboWorldFrame =
+    this->_model->GetLink()->GetWorldLinearVel();
+  math::Vector3 velNEDFrame =
+    gazeboToNED.rot.RotateVectorReverse(velGazeboWorldFrame);
+  pkt.velocityXYZ[0] = velNEDFrame.x;
+  pkt.velocityXYZ[1] = velNEDFrame.y;
+  pkt.velocityXYZ[2] = velNEDFrame.z;
 
   if (motorCommandProcessed){
 	  pkt.status_code = 1;

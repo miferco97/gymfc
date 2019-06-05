@@ -97,7 +97,7 @@ struct fdmPacket
 	  public: double rotorVelocitySlowdownSim = 10.0;
 	  public: double frequencyCutoff = 5.0;
 	  public: double samplingRate = 0.2;
-	  public: ignition::math::OnePole<double> velocityFilter;
+      public: math::OnePole<double> velocityFilter;
 
  };
   class QuadcopterWorldPlugin : public WorldPlugin
@@ -139,9 +139,9 @@ struct fdmPacket
 
 	private: bool resetWithRandomAngularVelocity;
 	private: int randomSeed;
-	private: ignition::math::Vector2d rollLimit;
-	private: ignition::math::Vector2d pitchLimit;
-	private: ignition::math::Vector2d yawLimit;
+    private: math::Vector2d rollLimit;
+    private: math::Vector2d pitchLimit;
+    private: math::Vector2d yawLimit;
 
 
 	public: physics::WorldPtr _world;
