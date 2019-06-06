@@ -128,6 +128,7 @@ class CaRL_env(AttitudeFlightControlEnv):
         self.render()
         self.start = 0
         self.start_sim = 0
+        self.FREQUENCY = 70.0
 
         self.fig, self.ax = plt.subplots(2,sharex=True)
         # self.ax = self.fig.add_subplot(211)
@@ -188,18 +189,8 @@ class CaRL_env(AttitudeFlightControlEnv):
 
 
     def step(self, action):
-        # end = time.time()
-        # print(1 / (end - self.start))
-        # self.start = time.time()
-
-        # end_sim = self.sim_time
-
-        # print(1 / (end_sim - self.start))
-        # self.start_sim = self.sim_time
 
         action = np.clip(action, self.action_space.low, self.action_space.high)
-        # print("action:", action)
-        # Step the sim
 
 
         # action = action + 1
@@ -220,7 +211,7 @@ class CaRL_env(AttitudeFlightControlEnv):
 
         end_sim = self.sim_time
 
-        while (end_sim - self.start_sim) <= 0.014:
+        while (end_sim - self.start_sim) <= (1 / self.FREQUENCY):
             self.obs = self.step_sim(action)
             end_sim = self.sim_time
 
@@ -281,6 +272,7 @@ class CaRL_env(AttitudeFlightControlEnv):
         # self.get_random_quat()
         self.observation_history = []
         self.start_sim = 0;
+        self.start_sim = self.sim_time
         return super(CaRL_env, self).reset()
 
 

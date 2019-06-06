@@ -409,9 +409,9 @@ void QuadcopterWorldPlugin::loop_thread()
 
                 */
 				
-  				if (this->_world->SimTime().Double() != 0.0){
+  				/*if (this->_world->SimTime().Double() != 0.0){
 					gzerr << "Reset sent but clock did not reset, at " << this->_world->SimTime().Double() << "\n";
-				}
+				}*/
 			}
 
 			if (this->arduCopterOnline)
@@ -421,7 +421,7 @@ void QuadcopterWorldPlugin::loop_thread()
 			this->lastControllerUpdateTime = curTime;
 			if (!this->resetWorld)
 			{
-				this->_world->Step(1);
+				//this->_world->Step(1);
 			}
 		} else {
 			//gzerr << "Command not received t=" << this->_world->SimTime().Double() << "\n";
