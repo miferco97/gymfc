@@ -30,6 +30,10 @@ global_path = RESULTS_PATH + "_" + TRAINING_NAME + "/"
 os.makedirs(global_path, exist_ok=True)
 
 # Define model
+# Add some param noise for exploration
+#param_noise = AdaptiveParamNoiseSpec(initial_stddev=0.1, desired_action_stddev=0.1)
+# Because we use parameter noise, we should use a MlpPolicy with layer normalization
+#model = DDPG(LnMlpPolicy, env, param_noise=param_noise, verbose=0)
 model = PPO2(MlpPolicy, env, verbose=1, tensorboard_log=global_path + "tb")
 
 def evaluate(model, num_steps=1000, pub=None):
