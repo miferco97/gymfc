@@ -240,9 +240,9 @@ class CaRL_env(AttitudeFlightControlEnv):
 
         state = np.append(euler_normalized, self.speeds)
 
-        fd = open('/home/miguel/Desktop/simData.csv', 'a')
-        fd.write(str(state[0])+' '+str(state[1])+' '+str(state[2]) +' '+ str(state[3]) +' '+ str(state[4]) +' '+ str(state[5])+' ' + str(action[0]) +' '+ str(action[1]) +' '+ str(action[2]) +' '+ str(action[3]) + '\n')
-        fd.close()
+        # fd = open('/home/miguel/Desktop/simData.csv', 'a')
+        # fd.write(str(state[0])+' '+str(state[1])+' '+str(state[2]) +' '+ str(state[3]) +' '+ str(state[4]) +' '+ str(state[5])+' ' + str(action[0]) +' '+ str(action[1]) +' '+ str(action[2]) +' '+ str(action[3]) + '\n')
+        # fd.close()
 
         # print(state)
         # state[1] = state[1] - 0.26
