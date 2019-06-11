@@ -6,16 +6,19 @@ from datetime import datetime
 import os
 
 from stable_baselines.common.policies import MlpPolicy
+from stable_baselines.ddpg.policies import LnMlpPolicy
 from stable_baselines.common.vec_env import DummyVecEnv
 from stable_baselines import PPO2
+from stable_baselines import DDPG
+from stable_baselines.ddpg import AdaptiveParamNoiseSpec
 
 # Preliminary parameter definition
 TEST_STEPS = 2000
 TRAINING_INTERVAL_STEPS = 20000
 TOTAL_TRAINING_STEPS = 1e12
-RESULTS_PATH = "/home/alejandro/py_workspace/stable-baselines/results/" + datetime.now().strftime("%B-%d-%Y_%H_%M%p")
-TRAINING_NAME = "ppo2_gymfc"
-PLOTTING_INFORMATION = False
+RESULTS_PATH = "/home/alejo/py_workspace/stable-baselines/results/" + datetime.now().strftime("%B-%d-%Y_%H_%M%p")
+TRAINING_NAME = "ddpg_gymfc"
+PLOTTING_INFORMATION = True
 
 if (PLOTTING_INFORMATION == True):
     import rospy
@@ -31,10 +34,10 @@ os.makedirs(global_path, exist_ok=True)
 
 # Define model
 # Add some param noise for exploration
-#param_noise = AdaptiveParamNoiseSpec(initial_stddev=0.1, desired_action_stddev=0.1)
+param_noise = AdaptiveParamNoiseSpec(initial_stddev=0.1, desired_action_stddev=0.1)
 # Because we use parameter noise, we should use a MlpPolicy with layer normalization
-#model = DDPG(LnMlpPolicy, env, param_noise=param_noise, verbose=0)
-model = PPO2(MlpPolicy, env, verbose=1, tensorboard_log=global_path + "tb")
+model = DDPG(LnMlpPolicy, env, param_noise=param_noise, verbose=1, tensorboard_log=global_path + "tb")
+#model = PPO2(MlpPolicy, env, verbose=1, tensorboard_log=global_path + "tb")
 
 def evaluate(model, num_steps=1000, pub=None):
     """
