@@ -192,6 +192,7 @@ class CaRL_env(AttitudeFlightControlEnv):
         # Check if action contains NaN
         if np.isnan(action).any():
             action = np.zeros(action.shape)
+            print("WARN: Found NaN in action space")
 
         # end = time.time()
         # print(1 / (end - self.start))
@@ -232,12 +233,15 @@ class CaRL_env(AttitudeFlightControlEnv):
         # Check if the observation has NaN
         if np.isnan(self.obs.angular_velocity_rpy).any():
             self.obs.angular_velocity_rpy = np.zeros(self.obs.angular_velocity_rpy.shape)
+            print("WARN: Found NaN in obs.angular_velocity_rpy space")
 
         if np.isnan(self.obs.euler).any():
             self.obs.euler = np.zeros(self.obs.euler.shape)
+            print("WARN: Found NaN in obs.euler space")
 
         if np.isnan(self.obs.motor_velocity).any():
             self.obs.motor_velocity = np.zeros(self.obs.motor_velocity.shape)
+            print("WARN: Found NaN in obs.motor_velocity space")
 
         # print(1 / (end_sim - self.start_sim))
         self.start_sim = self.sim_time
@@ -271,6 +275,7 @@ class CaRL_env(AttitudeFlightControlEnv):
         # Check if reward is NaN
         if np.isnan(reward):
             reward = 0.0
+            print("WARN: Found NaN in reward")
 
         # self.animate()
 
