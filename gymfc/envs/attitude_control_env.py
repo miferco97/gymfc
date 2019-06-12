@@ -22,8 +22,8 @@ import matplotlib.animation as animation
 
 class AttitudeFlightControlEnv(GazeboEnv):
     def __init__(self, **kwargs):
-        self.last_angular_part = 0;
-        self.last_theta_norm=0;
+        self.last_angular_part = 0
+        self.last_theta_norm=0
         self.error_raw=np.zeros(7)
         self.random_quaternion=np.zeros(4)
         self.random_euler=np.zeros(3)
@@ -127,6 +127,7 @@ class CaRL_env(AttitudeFlightControlEnv):
         self.last_reward=0
         self.render()
         self.start = 0
+        self.FREQUENCY = 70.0
         self.start_sim = 0
 
         self.fig, self.ax = plt.subplots(2,sharex=True)
@@ -188,6 +189,10 @@ class CaRL_env(AttitudeFlightControlEnv):
 
 
     def step(self, action):
+        # Check if action contains NaN
+        if np.isnan(action).any():
+            action = np.zeros(action.shape)
+
         # end = time.time()
         # print(1 / (end - self.start))
         # self.start = time.time()
@@ -220,9 +225,19 @@ class CaRL_env(AttitudeFlightControlEnv):
 
         end_sim = self.sim_time
 
-        while (end_sim - self.start_sim) <= 0.014:
+        while (end_sim - self.start_sim) <= (1 / self.FREQUENCY):
             self.obs = self.step_sim(action)
             end_sim = self.sim_time
+
+        # Check if the observation has NaN
+        if np.isnan(self.obs.angular_velocity_rpy).any():
+            self.obs.angular_velocity_rpy = np.zeros(self.obs.angular_velocity_rpy.shape)
+
+        if np.isnan(self.obs.euler).any():
+            self.obs.euler = np.zeros(self.obs.euler.shape)
+
+        if np.isnan(self.obs.motor_velocity).any():
+            self.obs.motor_velocity = np.zeros(self.obs.motor_velocity.shape)
 
         # print(1 / (end_sim - self.start_sim))
         self.start_sim = self.sim_time
@@ -253,6 +268,10 @@ class CaRL_env(AttitudeFlightControlEnv):
 
         reward = self.compute_reward()
 
+        # Check if reward is NaN
+        if np.isnan(reward):
+            reward = 0.0
+
         # self.animate()
 
         # print("pitch:", self.obs.euler[1])
@@ -280,7 +299,7 @@ class CaRL_env(AttitudeFlightControlEnv):
     def reset(self):
         # self.get_random_quat()
         self.observation_history = []
-        self.start_sim = 0;
+        self.start_sim = self.sim_time
         return super(CaRL_env, self).reset()
 
 
