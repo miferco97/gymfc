@@ -141,6 +141,8 @@ class GazeboEnv(gym.Env):
     GYMFC_CONFIG_ENV_VAR = "GYMFC_CONFIG"
 
     def __init__(self):
+        self.event_loop_created = False
+
         # Init the seed variable, user can override this
         self.seed()
 
@@ -180,6 +182,8 @@ class GazeboEnv(gym.Env):
         _, self.esc_protocol = self.loop.run_until_complete(writer) 
 
         self._start_sim()
+
+        self.event_loop_created = True
 
     def load_config(self):
         if self.GYMFC_CONFIG_ENV_VAR not in os.environ:

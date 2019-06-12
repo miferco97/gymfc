@@ -319,25 +319,28 @@ class CaRL_env(AttitudeFlightControlEnv):
         return super(CaRL_env, self).reset(reset=reset)
 
     def monitor_frequency(self):
-        # Main loop
-        self.lock.acquire()
-        if self.pivot:
-            self.th_counter = 0
+        if self.event_loop_created:
+            # Main loop
+            self.lock.acquire()
+            if self.pivot:
+                self.th_counter = 0
+            else:
+                self.th_counter = self.th_counter + 1
+            self.lock.release()
+
+            if self.th_counter >= 15 and not self.paused:
+                # print("THREAD: Simulation has to be paused")
+                self.reset(reset=-1)
+                self.paused = True
+
+            if self.th_counter < 15 and self.paused:
+                self.paused = False
+
+            self.lock.acquire()
+            self.pivot = False
+            self.lock.release()
         else:
-            self.th_counter = self.th_counter + 1
-        self.lock.release()
-
-        if self.th_counter >= 15 and not self.paused:
-            # print("THREAD: Simulation has to be paused")
-            self.reset(reset=-1)
-            self.paused = True
-
-        if self.th_counter < 15 and self.paused:
-            self.paused = False
-
-        self.lock.acquire()
-        self.pivot = False
-        self.lock.release()
+            print("THREAD: Parent init not initialized")
 
         threading.Timer(self.THREAD_PERIOD, self.monitor_frequency).start()
 
