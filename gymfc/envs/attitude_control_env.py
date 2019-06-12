@@ -5,7 +5,7 @@ import logging
 logger = logging.getLogger("gymfc")
 from math import pi
 
-import time
+import time, threading
 
 
 import numpy as np
@@ -14,8 +14,6 @@ import numpy as np
 import datetime as dt
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
-
-
 
 # This function is called periodically from FuncAnimation
 
@@ -127,6 +125,12 @@ class CaRL_env(AttitudeFlightControlEnv):
         self.last_reward=0
         self.render()
         self.start = 0
+        self.FREQUENCY = 70.0
+        self.THREAD_PERIOD = (1.0 / (10.0 * self.FREQUENCY)) # 10 times faster
+        self.th_counter = 0
+        self.pivot = False
+        self.paused = False
+        self.lock = threading.RLock()
         self.start_sim = 0
 
         self.fig, self.ax = plt.subplots(2,sharex=True)
@@ -137,6 +141,9 @@ class CaRL_env(AttitudeFlightControlEnv):
         self.x2 = []
         self.x3 = []
         self.x4 = []
+
+        # Start monitor thread
+        threading.Timer(1, self.monitor_frequency).start()
 
     def animate(self):
         # Read temperature (Celsius) from TMP102
@@ -188,6 +195,16 @@ class CaRL_env(AttitudeFlightControlEnv):
 
 
     def step(self, action):
+        # Update pivot for monitoring
+        self.lock.acquire()
+        self.pivot = True
+        self.lock.release()
+
+        # Check if action contains NaN
+        if not np.isfinite(action).any():
+            action = np.zeros(np.asarray(action).shape)
+            print("WARN: Found NaN in action space")
+
         # end = time.time()
         # print(1 / (end - self.start))
         # self.start = time.time()
@@ -220,12 +237,25 @@ class CaRL_env(AttitudeFlightControlEnv):
 
         end_sim = self.sim_time
 
-        while (end_sim - self.start_sim) <= 0.014:
+        while (end_sim - self.start_sim) <= (1 / self.FREQUENCY):
             self.obs = self.step_sim(action)
             end_sim = self.sim_time
 
         # print(1 / (end_sim - self.start_sim))
         self.start_sim = self.sim_time
+
+        # Check if the observation has NaN
+        if not np.isfinite(self.obs.angular_velocity_rpy).any():
+            self.obs.angular_velocity_rpy = np.zeros(np.asarray(self.obs.angular_velocity_rpy).shape)
+            print("WARN: Found NaN in obs.angular_velocity_rpy space")
+
+        if not np.isfinite(self.obs.euler).any():
+            self.obs.euler = np.zeros(np.asarray(self.obs.euler).shape)
+            print("WARN: Found NaN in obs.euler space")
+
+        if not np.isfinite(self.obs.motor_velocity).any():
+            self.obs.motor_velocity = np.zeros(np.asarray(self.obs.motor_velocity).shape)
+            print("WARN: Found NaN in obs.motor_velocity space")
 
         # quat = self.obs.orientation_quat
         self.speeds = self.obs.angular_velocity_rpy / (self.omega_bounds[1])
@@ -253,6 +283,11 @@ class CaRL_env(AttitudeFlightControlEnv):
 
         reward = self.compute_reward()
 
+        # Check if reward is NaN
+        if not np.isfinite(reward):
+            reward = 0.0
+            print("WARN: Found NaN in reward")
+
         # self.animate()
 
         # print("pitch:", self.obs.euler[1])
@@ -277,13 +312,34 @@ class CaRL_env(AttitudeFlightControlEnv):
 
         return np.zeros(6)
 
-    def reset(self):
+    def reset(self, reset=True):
         # self.get_random_quat()
         self.observation_history = []
-        self.start_sim = 0;
-        return super(CaRL_env, self).reset()
+        self.start_sim = 0
+        return super(CaRL_env, self).reset(reset=reset)
 
+    def monitor_frequency(self):
+        # Main loop
+        self.lock.acquire()
+        if self.pivot:
+            self.th_counter = 0
+        else:
+            self.th_counter = self.th_counter + 1
+        self.lock.release()
 
+        if self.th_counter >= 15 and not self.paused:
+            # print("THREAD: Simulation has to be paused")
+            self.reset(reset=-1)
+            self.paused = True
+
+        if self.th_counter < 15 and self.paused:
+            self.paused = False
+
+        self.lock.acquire()
+        self.pivot = False
+        self.lock.release()
+
+        threading.Timer(self.THREAD_PERIOD, self.monitor_frequency).start()
 
 class GyroErrorFeedbackEnv(AttitudeFlightControlEnv):
     def __init__(self, **kwargs): 
