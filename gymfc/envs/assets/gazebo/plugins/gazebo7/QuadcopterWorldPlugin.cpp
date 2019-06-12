@@ -136,6 +136,7 @@ void QuadcopterWorldPlugin::Load(physics::WorldPtr _world, sdf::ElementPtr _sdf)
 
   this->_world = _world;
   this->processSDF(_sdf);
+  this->pause_sim = false;
 
   const	std::string modelName = "testbench";
   // Force pause because we drive the simulation steps
@@ -358,6 +359,14 @@ void QuadcopterWorldPlugin::loop_thread()
 	double msPeriod = 1000.0/this->loopRate;
     this->resetWorld = FALSE;
 	while (1){
+
+		if (this->pause_sim == true){
+	        this->_world->SetPaused(TRUE);
+            std::cout << "PLUGIN: Slow agent computation requires paused simulation" << std::endl;
+	    }
+	    else{
+            this->_world->SetPaused(FALSE);
+	    }
 
 		std::lock_guard<std::mutex> lock(this->mutex);
 
@@ -617,8 +626,15 @@ bool QuadcopterWorldPlugin::ReceiveMotorCommand()
     }
       if (pkt.resetWorld == 1) {
           this->resetWorld = TRUE;
-      } else {
+          this->pause_sim = false;
+          std::cout << "PLUGIN: Reset has been called" << std::endl;
+      }
+      else if (pkt.resetWorld == -1){
+          this->pause_sim = true;
+      }
+      else {
           this->resetWorld = FALSE;
+          this->pause_sim = false;
       }
   }
   return commandProcessed;

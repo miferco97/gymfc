@@ -182,6 +182,9 @@ struct fdmPacket
 	/// \brief number of times ArduCotper skips update
 	/// before marking Quadcopter offline
 	public: int connectionTimeoutMaxCount;
+
+    /// Boolean to enable intermmediate paused simulation
+	private: bool pause_sim;
   };
 }
 #endif
