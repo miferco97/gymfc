@@ -144,7 +144,8 @@ class CaRL_env(AttitudeFlightControlEnv):
         self.x4 = []
 
         # Start monitor thread
-        threading.Timer(1, self.monitor_frequency).start()
+        if self.t_monitor:
+            threading.Timer(self.THREAD_PERIOD, self.monitor_frequency).start()
 
     def animate(self):
         # Read temperature (Celsius) from TMP102
@@ -343,7 +344,8 @@ class CaRL_env(AttitudeFlightControlEnv):
         self.pivot = False
         self.lock.release()
 
-        threading.Timer(self.THREAD_PERIOD, self.monitor_frequency).start()
+        if self.t_monitor:
+            threading.Timer(self.THREAD_PERIOD, self.monitor_frequency).start()
 
 class GyroErrorFeedbackEnv(AttitudeFlightControlEnv):
     def __init__(self, **kwargs): 

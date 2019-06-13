@@ -153,6 +153,7 @@ class GazeboEnv(gym.Env):
         # Track process IDs so we can kill em
         self.pids = []
         self.loop = asyncio.get_event_loop()
+        self.t_monitor = True
 
         self.stepsize = self.sdf_max_step_size()        
         self.sim_time = 0
@@ -415,6 +416,9 @@ class GazeboEnv(gym.Env):
         for pid in self.pids:
             p = subprocess.run("kill {}".format(pid), shell=True)
             print("Killing process with ID=", pid)
+            self.loop.call_soon_threadsafe(self.loop.stop)
+            print("Killing asyncio loop")
+            self.t_monitor = False
 
     def print_post_simulation_stats(self):
         print ("\nSimulation Stats")
