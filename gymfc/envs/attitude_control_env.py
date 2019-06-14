@@ -21,15 +21,16 @@ import matplotlib.animation as animation
 
 class AttitudeFlightControlEnv(GazeboEnv):
     def __init__(self, **kwargs):
-        self.last_angular_part = 0;
-        self.last_theta_norm=0;
+        self.last_angular_part = 0
+        self.last_theta_norm=0
         self.error_raw=np.zeros(7)
         self.random_quaternion=np.zeros(4)
         self.random_euler=np.zeros(3)
         self.index = 0
         self.max_sim_time = kwargs["max_sim_time"]
-        self.incr_action=np.zeros(4)
-        self.last_action = np.zeros(4)
+        self.incr_action = []
+        self.last_action = []
+        self.action = []
 
         np.random.seed(seed=None)
         super(AttitudeFlightControlEnv, self).__init__()
@@ -63,35 +64,74 @@ class AttitudeFlightControlEnv(GazeboEnv):
         self.random_quaternion[2] = sy * cp * sr + cy * sp * cr
         self.random_quaternion[3] = sy * cp * cr - cy * sp * sr
 
-    def compute_reward(self):
-
-        # rew_R = np.abs((self.obs.euler[0]-self.random_euler[0])/(pi))
-        # rew_P = np.abs((self.obs.euler[1]-self.random_euler[1])/(pi))
-        # rew_Y = np.abs((self.obs.euler[2]-self.random_euler[2])/(2*pi))
-
+    def compute_reward_ExpA(self):
         rew_R = np.abs((self.obs.euler[0])/(pi))
         rew_P = np.abs((self.obs.euler[1])/(pi))
         rew_Y = np.abs((self.obs.euler[2])/(pi))
 
-        # print("reward R: ", rew_R)
-        # print("reward P: ", rew_P)
-        # print("reward Y: ", rew_Y)
+        if np.abs(self.obs.euler[0]) >= 0.999 * (pi / 2) or np.abs(self.obs.euler[1]) >= 0.999 * (pi / 2):
+            done = True
+            reward = -1
+        else:
+            reward = np.power(1 - np.clip(((rew_P + rew_R + rew_Y) / 3),0,1),3)
+            done = False
 
-        # reward = - (rew_P+rew_R+rew_Y) / 3
-        # reward = 1 - np.clip((rew_P + rew_R)/2,0,1)
+        return [reward, done]
 
-        # actual_reward = np.power(1 - np.clip(((rew_P + rew_R + rew_Y) / 3),0,1),2)
-        actual_reward = np.power(1 - np.clip(((rew_P + rew_R + rew_Y) / 3),0,1),3) #- 0.001 * np.sum(1+self.last_action)/8
-        reward = actual_reward
-        self.last_reward = actual_reward
+    def compute_reward_ExpB(self):
+        # Init action reward
+        action_reward = 0
+        shap_incr_act = 0
 
-        # reward = 1 - np.clip(((np.exp(reward) - 1) / (np.exp(1) - 1)),0,1)
-        # reward = (np.exp(reward) - 1) / (np.exp(1) - 1)
+        # Compute shaping
+        shap_R = -100 * np.sqrt(np.power(self.obs.euler[0] / pi, 2))
+        shap_P = -100 * np.sqrt(np.power(self.obs.euler[1] / pi, 2))
+        shap_Y = -100 * np.sqrt(np.power(self.obs.euler[2] / pi, 2))
 
-        # print("total reward",reward)
-        # print("-----------")
+        # print("Shaping pitch: " + str(shap_P))
 
-        return reward
+        if np.asarray(self.incr_action).size:
+            shap_incr_act = -1 * np.sqrt(np.power(np.clip(np.sum(np.abs(self.incr_action)) / np.asarray(self.incr_action).size, a_min=0, a_max=1), 2))
+            # print("Shaping action: " + str(shap_incr_act))
+        reward = shap_R + shap_P + shap_Y + shap_incr_act
+
+        # if np.asarray(self.incr_action).size:
+        #     action_reward = np.clip(np.sum(np.abs(self.incr_action)) / np.asarray(self.incr_action).size, a_min=0, a_max=1)
+        #     print("Action reward: " + str(action_reward))
+
+        # Compute shaping
+        if self.last_reward != 0:
+            reward = reward - self.last_reward
+            self.last_reward = shap_R + shap_P + shap_Y
+            # print("Shaped reward: " + str(reward))
+        else:
+            self.last_reward = reward
+            reward = 0
+
+        # Include action velocity penalization
+        reward += action_reward
+
+        if np.abs(self.obs.euler[0]) >= 0.999 * (pi / 2) or np.abs(self.obs.euler[1]) >= 0.999 * (pi / 2):
+            done = True
+            reward = -50
+        else:
+            done = False
+
+        return [reward, done]
+
+    def compute_reward(self):
+
+        # Compute reward
+        [reward, done] = self.compute_reward_ExpA()
+        # [reward, done] = self.compute_reward_ExpB()
+
+        # Store last reward
+        if done:
+            self.last_reward = 0
+            self.last_action = []
+            self.action = []
+
+        return [reward, done]
 
 
 
@@ -123,7 +163,7 @@ class CaRL_env(AttitudeFlightControlEnv):
         self.memory_size = kwargs["memory_size"]
         super(CaRL_env, self).__init__(**kwargs)
         self.omega_target = self.sample_target()
-        self.last_reward=0
+        self.last_reward = 0
         self.render()
         self.start = 0
         self.FREQUENCY = 70.0
@@ -207,21 +247,14 @@ class CaRL_env(AttitudeFlightControlEnv):
             action = np.zeros(np.asarray(action).shape)
             print("WARN: Found NaN in action space")
 
-        # end = time.time()
-        # print(1 / (end - self.start))
-        # self.start = time.time()
-
-        # end_sim = self.sim_time
-
-        # print(1 / (end_sim - self.start))
-        # self.start_sim = self.sim_time
-
         action = np.clip(action, self.action_space.low, self.action_space.high)
-        # print("action:", action)
-        # Step the sim
 
+        # Store increment in action
+        if np.asarray(self.action).size and np.asarray(self.last_action).size:
+            self.incr_action = self.action - self.last_action
 
-        # action = action + 1
+        self.last_action = self.action
+        self.action = action
 
         # the motors only can use a 50% of the power
         limitation = False
@@ -232,7 +265,6 @@ class CaRL_env(AttitudeFlightControlEnv):
 
             action_bias = 1
             action += action_bias
-        self.incr_action = action - self.last_action
 
         self.last_action = action
         # print(action)
@@ -283,7 +315,7 @@ class CaRL_env(AttitudeFlightControlEnv):
 
         self.observation_history.append(np.concatenate([state, self.obs.motor_velocity]))
 
-        reward = self.compute_reward()
+        [reward, done] = self.compute_reward()
 
         # Check if reward is NaN
         if not np.isfinite(reward):
@@ -292,17 +324,9 @@ class CaRL_env(AttitudeFlightControlEnv):
 
         # self.animate()
 
-        # print("pitch:", self.obs.euler[1])
         if self.sim_time >= self.max_sim_time:
             done = True
             self.last_theta_norm=0
-        # elif np.abs(self.obs.euler[2]) >= pi / 2 or np.abs(self.obs.euler[1]) >= 0.99 * (pi / 2):
-        elif np.abs(self.obs.euler[0]) >= 0.999 * (pi / 2) or np.abs(self.obs.euler[1]) >= 0.999 * (pi / 2):
-            done = True
-        #     self.last_angular_part=0;
-            reward = -1
-        else:
-            done = False
 
         info = {"sim_time": self.sim_time, "sp": self.omega_target, "current_rpy": self.omega_actual}
         # print("state: ",state);

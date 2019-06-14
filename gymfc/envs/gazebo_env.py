@@ -260,9 +260,20 @@ class GazeboEnv(gym.Env):
             action (np.array): motor values normalized between [-1:1] in 
         the order [rear_r, front_r, rear_l, font_l]
         """
+
+        # Full range
+        RELATIVE_ACTIONS = True
+        full_range = 1000
+        percentage_of_actions = 0.25
+        offset = 500
+
         # Convert to motor input to PWM range [0, 1000] to match
         # Betaflight mixer output
-        pwm_motor_values = [ ((m + 1) * 500) for m in action]
+        if RELATIVE_ACTIONS:
+            pwm_motor_values = [ (m * full_range * percentage_of_actions + offset) for m in action]
+        else:
+            pwm_motor_values = [ ((m + 1) * 500) for m in action]
+
         # print(pwm_motor_values)
         # Packets are sent over UDP so they can be dropped, there is no 
         # gaurentee. First we try and send command. If an error occurs in transition 

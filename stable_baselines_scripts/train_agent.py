@@ -4,20 +4,25 @@ import gymfc
 import numpy as np
 from datetime import datetime
 import os
+from shutil import copyfile
 
 from stable_baselines.common.policies import MlpPolicy
 from stable_baselines.ddpg.policies import LnMlpPolicy
 from stable_baselines.common.vec_env import DummyVecEnv
 from stable_baselines import PPO2
 from stable_baselines import DDPG
-from stable_baselines.ddpg import AdaptiveParamNoiseSpec
+from stable_baselines.ddpg.noise import NormalActionNoise, OrnsteinUhlenbeckActionNoise, AdaptiveParamNoiseSpec
+from stable_baselines import TRPO
 
 # Preliminary parameter definition
 TEST_STEPS = 2000
-TRAINING_INTERVAL_STEPS = 20000
+TRAINING_INTERVAL_STEPS = 10000
 TOTAL_TRAINING_STEPS = 1e12
-RESULTS_PATH = "/home/alejo/py_workspace/stable-baselines/results/" + datetime.now().strftime("%B-%d-%Y_%H_%M%p")
+RESULTS_PATH = "/home/alejandro/py_workspace/stable-baselines/results/" + datetime.now().strftime("%B-%d-%Y_%H_%M%p")
+# PRETRAINED_MODEL = "/home/alejandro/py_workspace/stable-baselines/results/June-13-2019_15_20PM_ddpg_gymfc_increasing/ddpg_gymfc_0023.pkl"
+PRETRAINED_MODEL = None
 TRAINING_NAME = "ddpg_gymfc"
+AGENT_ALGORITHM = "DDPG" # DDPG, PPO2, TRPO
 PLOTTING_INFORMATION = True
 
 if (PLOTTING_INFORMATION == True):
@@ -32,12 +37,46 @@ env = DummyVecEnv([lambda: env])  # The algorithms require a vectorized environm
 global_path = RESULTS_PATH + "_" + TRAINING_NAME + "/"
 os.makedirs(global_path, exist_ok=True)
 
+# Copy file to results directory
+if PRETRAINED_MODEL:
+    pretrained_model_name = "pretrained.pkl"
+    copyfile(PRETRAINED_MODEL, global_path + pretrained_model_name)
+
 # Define model
-# Add some param noise for exploration
-param_noise = AdaptiveParamNoiseSpec(initial_stddev=0.1, desired_action_stddev=0.1)
-# Because we use parameter noise, we should use a MlpPolicy with layer normalization
-model = DDPG(LnMlpPolicy, env, param_noise=param_noise, verbose=1, tensorboard_log=global_path + "tb")
-#model = PPO2(MlpPolicy, env, verbose=1, tensorboard_log=global_path + "tb")
+if AGENT_ALGORITHM == "DDPG":
+    # Add some param noise for exploration
+    # param_noise = AdaptiveParamNoiseSpec(initial_stddev=0.1, desired_action_stddev=0.1, adoption_coefficient=1.01)
+    param_noise = None
+    n_actions = env.action_space.shape[-1]
+    action_noise = OrnsteinUhlenbeckActionNoise(mean=np.zeros(n_actions), sigma=float(0.5) * np.ones(n_actions))
+    # Because we use parameter noise, we should use a MlpPolicy with layer normalization
+    model = DDPG(LnMlpPolicy, env, param_noise=param_noise, action_noise=action_noise, verbose=1, tensorboard_log=global_path + "tb")
+
+    # Load if pretrained
+    if PRETRAINED_MODEL:
+        DDPG.load(global_path + pretrained_model_name, env=env)
+        print("INFO: Loaded model " + global_path + pretrained_model_name)
+
+elif AGENT_ALGORITHM == "PPO2":
+    # Create model
+    model = PPO2(MlpPolicy, env, verbose=1, tensorboard_log=global_path + "tb")
+
+    # Load if pretrained
+    if PRETRAINED_MODEL:
+        PPO2.load(global_path + pretrained_model_name, env=env)
+        print("INFO: Loaded model " + global_path + pretrained_model_name)
+
+elif AGENT_ALGORITHM == "TRPO":
+    # Create model
+    model = TRPO(MlpPolicy, env, verbose=1, tensorboard_log=global_path + "tb")
+
+    # Load if pretrained
+    if PRETRAINED_MODEL:
+        TRPO.load(global_path + pretrained_model_name, env=env)
+        print("INFO: Loaded model " + global_path + pretrained_model_name)
+else:
+    raise RuntimeError('ERROR: Agent not recognized')
+
 
 def evaluate(model, num_steps=1000, pub=None):
     """
