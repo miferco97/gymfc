@@ -12,15 +12,17 @@ from stable_baselines.common.vec_env import DummyVecEnv
 from stable_baselines import PPO2
 from stable_baselines import DDPG
 from stable_baselines.ddpg import AdaptiveParamNoiseSpec
+from stable_baselines import TRPO
 
 # Preliminary parameter definition
 TEST_STEPS = 2000
 TRAINING_INTERVAL_STEPS = 20000
 TOTAL_TRAINING_STEPS = 1e12
 RESULTS_PATH = "/home/alejandro/py_workspace/stable-baselines/results/" + datetime.now().strftime("%B-%d-%Y_%H_%M%p")
-PRETRAINED_MODEL = "/home/alejandro/py_workspace/stable-baselines/results/June-13-2019_15_20PM_ddpg_gymfc_increasing/ddpg_gymfc_0023.pkl"
+# PRETRAINED_MODEL = "/home/alejandro/py_workspace/stable-baselines/results/June-13-2019_15_20PM_ddpg_gymfc_increasing/ddpg_gymfc_0023.pkl"
+PRETRAINED_MODEL = None
 TRAINING_NAME = "ddpg_gymfc"
-AGENT_ALGORITHM = "DDPG" # DDPG, PPO2
+AGENT_ALGORITHM = "TRPO" # DDPG, PPO2, TRPO
 PLOTTING_INFORMATION = True
 
 if (PLOTTING_INFORMATION == True):
@@ -36,8 +38,9 @@ global_path = RESULTS_PATH + "_" + TRAINING_NAME + "/"
 os.makedirs(global_path, exist_ok=True)
 
 # Copy file to results directory
-pretrained_model_name = "pretrained.pkl"
-copyfile(PRETRAINED_MODEL, global_path + pretrained_model_name)
+if PRETRAINED_MODEL:
+    pretrained_model_name = "pretrained.pkl"
+    copyfile(PRETRAINED_MODEL, global_path + pretrained_model_name)
 
 # Define model
 if AGENT_ALGORITHM == "DDPG":
@@ -48,7 +51,7 @@ if AGENT_ALGORITHM == "DDPG":
 
     # Load if pretrained
     if PRETRAINED_MODEL:
-        DDPG.load(global_path + pretrained_model_name)
+        DDPG.load(global_path + pretrained_model_name, env=env)
         print("INFO: Loaded model " + global_path + pretrained_model_name)
 
 elif AGENT_ALGORITHM == "PPO2":
@@ -57,7 +60,16 @@ elif AGENT_ALGORITHM == "PPO2":
 
     # Load if pretrained
     if PRETRAINED_MODEL:
-        PPO2.load(global_path + pretrained_model_name)
+        PPO2.load(global_path + pretrained_model_name, env=env)
+        print("INFO: Loaded model " + global_path + pretrained_model_name)
+
+elif AGENT_ALGORITHM == "TRPO":
+    # Create model
+    model = TRPO(MlpPolicy, env, verbose=1, tensorboard_log=global_path + "tb")
+
+    # Load if pretrained
+    if PRETRAINED_MODEL:
+        TRPO.load(global_path + pretrained_model_name, env=env)
         print("INFO: Loaded model " + global_path + pretrained_model_name)
 else:
     raise RuntimeError('ERROR: Agent not recognized')
