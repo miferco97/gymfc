@@ -2,6 +2,8 @@ import gym
 from gym import error, spaces, utils
 from gym.utils import seeding
 import asyncio
+import nest_asyncio
+nest_asyncio.apply()
 import struct
 import math
 import logging
@@ -262,7 +264,7 @@ class GazeboEnv(gym.Env):
         """
 
         # Full range
-        RELATIVE_ACTIONS = True
+        RELATIVE_ACTIONS = False
         full_range = 1000
         percentage_of_actions = 0.25
         offset = 500

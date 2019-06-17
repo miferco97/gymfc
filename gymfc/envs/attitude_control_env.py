@@ -7,6 +7,8 @@ from math import pi
 
 import time, threading
 import asyncio
+import nest_asyncio
+nest_asyncio.apply()
 
 
 import numpy as np
