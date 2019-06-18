@@ -16,8 +16,8 @@ from stable_baselines.ddpg import AdaptiveParamNoiseSpec
 TEST_STEPS = 2000
 TRAINING_INTERVAL_STEPS = 20000
 TOTAL_TRAINING_STEPS = 1e12
-RESULTS_PATH = "/home/alejo/py_workspace/stable-baselines/results/" + datetime.now().strftime("%B-%d-%Y_%H_%M%p")
-TRAINING_NAME = "ddpg_gymfc"
+RESULTS_PATH = "/mnt/Data_Ubuntu/results_training/" + datetime.now().strftime("%B-%d-%Y_%H_%M%p")
+TRAINING_NAME = "ppo2_gymfc"
 PLOTTING_INFORMATION = True
 
 if (PLOTTING_INFORMATION == True):
@@ -36,8 +36,8 @@ os.makedirs(global_path, exist_ok=True)
 # Add some param noise for exploration
 param_noise = AdaptiveParamNoiseSpec(initial_stddev=0.1, desired_action_stddev=0.1)
 # Because we use parameter noise, we should use a MlpPolicy with layer normalization
-model = DDPG(LnMlpPolicy, env, param_noise=param_noise, verbose=1, tensorboard_log=global_path + "tb")
-#model = PPO2(MlpPolicy, env, verbose=1, tensorboard_log=global_path + "tb")
+#model = DDPG(LnMlpPolicy, env, param_noise=param_noise, verbose=1, tensorboard_log=global_path + "tb")
+model = PPO2(MlpPolicy, env, verbose=1, tensorboard_log=global_path + "tb",cliprange=0.08)
 
 def evaluate(model, num_steps=1000, pub=None):
     """

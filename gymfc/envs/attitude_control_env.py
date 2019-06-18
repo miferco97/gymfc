@@ -213,16 +213,20 @@ class CaRL_env(AttitudeFlightControlEnv):
 
             action_bias = 1
             action += action_bias
+
         self.incr_action = action - self.last_action
 
-        self.last_action = action
         # print(action)
 
+        action = 0.9 * self.last_action + 0.1 * action
         end_sim = self.sim_time
 
         while (end_sim - self.start_sim) <= 0.014:
             self.obs = self.step_sim(action)
             end_sim = self.sim_time
+
+        self.last_action = action
+
 
         # print(1 / (end_sim - self.start_sim))
         self.start_sim = self.sim_time
