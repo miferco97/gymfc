@@ -59,7 +59,8 @@ if AGENT_ALGORITHM == "DDPG":
 
     # Load if pretrained
     if PRETRAINED_MODEL:
-        DDPG.load(global_path + pretrained_model_name, env=env)
+        del model
+        model = DDPG.load(global_path + pretrained_model_name, env=env)
         print("INFO: Loaded model " + global_path + pretrained_model_name)
 
 elif AGENT_ALGORITHM == "PPO2":
@@ -68,7 +69,8 @@ elif AGENT_ALGORITHM == "PPO2":
 
     # Load if pretrained
     if PRETRAINED_MODEL:
-        PPO2.load(global_path + pretrained_model_name, env=env)
+        del model
+        model = PPO2.load(global_path + pretrained_model_name, env=env)
         print("INFO: Loaded model " + global_path + pretrained_model_name)
 
 elif AGENT_ALGORITHM == "TRPO":
@@ -77,7 +79,8 @@ elif AGENT_ALGORITHM == "TRPO":
 
     # Load if pretrained
     if PRETRAINED_MODEL:
-        TRPO.load(global_path + pretrained_model_name, env=env)
+        del model
+        model = TRPO.load(global_path + pretrained_model_name, env=env)
         print("INFO: Loaded model " + global_path + pretrained_model_name)
 else:
     raise RuntimeError('ERROR: Agent not recognized')
