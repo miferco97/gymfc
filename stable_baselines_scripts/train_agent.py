@@ -22,7 +22,7 @@ RESULTS_PATH = "/home/alejo/py_workspace/stable-baselines/results/" + datetime.n
 TRAINING_NAME = "ppo2_gymfc_pitch"
 AGENT_ALGORITHM = "PPO2" # DDPG, PPO2, TRPO
 PLOTTING_INFORMATION = True
-# PRETRAINED_MODEL = "/home/alejo/py_workspace/stable-baselines/results/June-17-2019_17_50PM_ppo2_gymfc_pitch/ppo2_gymfc_pitch_0000010000.pkl"
+# PRETRAINED_MODEL = "/home/alejandro/py_workspace/stable-baselines/results/June-19-2019_15_15PM_ppo2_gymfc_pitch/ppo2_gymfc_pitch_0000030000.pkl"
 PRETRAINED_MODEL = None
 TEST_ONLY = False
 
@@ -50,10 +50,12 @@ if PRETRAINED_MODEL:
 # Define model
 if AGENT_ALGORITHM == "DDPG":
     # Add some param noise for exploration
+    param_noise = None
+    action_noise = None
     param_noise = AdaptiveParamNoiseSpec(initial_stddev=0.1, desired_action_stddev=0.1, adoption_coefficient=1.01)
-    # param_noise = None
     # n_actions = env.action_space.shape[-1]
     # action_noise = OrnsteinUhlenbeckActionNoise(mean=np.zeros(n_actions), sigma=float(0.5) * np.ones(n_actions))
+
     # Because we use parameter noise, we should use a MlpPolicy with layer normalization
     model = DDPG(LnMlpPolicy, env, param_noise=param_noise, action_noise=action_noise, verbose=1, tensorboard_log=global_path + "tb")
 
@@ -65,7 +67,7 @@ if AGENT_ALGORITHM == "DDPG":
 
 elif AGENT_ALGORITHM == "PPO2":
     # Create model
-    model = PPO2(MlpPolicy, env, verbose=1, tensorboard_log=global_path + "tb")
+    model = PPO2(MlpPolicy, env, verbose=1, tensorboard_log=global_path + "tb", cliprange=0.1)
 
     # Load if pretrained
     if PRETRAINED_MODEL:
@@ -106,7 +108,7 @@ def evaluate(model, num_steps=1000, pub=None):
         if (pub != None):
             # Publish action
             msg = Float32MultiArray()
-            msg.data = action[0]
+            msg.data = info[0]['forwarded_action']
             pub.publish(msg)
 
         # Stats

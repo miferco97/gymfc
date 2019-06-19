@@ -33,6 +33,9 @@ class AttitudeFlightControlEnv(GazeboEnv):
         self.incr_action = []
         self.last_action = []
         self.action = []
+        self.ACTION_SMOOTHING = False
+        self.BUFFER_SIZE = 5
+        self.action_buffer = np.zeros((4, self.BUFFER_SIZE))
 
         np.random.seed(seed=None)
         super(AttitudeFlightControlEnv, self).__init__()
@@ -66,7 +69,9 @@ class AttitudeFlightControlEnv(GazeboEnv):
         self.random_quaternion[2] = sy * cp * sr + cy * sp * cr
         self.random_quaternion[3] = sy * cp * cr - cy * sp * sr
 
-    def compute_reward_ExpA(self):
+    def compute_reward_type_a(self):
+        # Basic reward of angles
+
         rew_R = np.abs((self.obs.euler[0])/(pi))
         rew_P = np.abs((self.obs.euler[1])/(pi))
         rew_Y = np.abs((self.obs.euler[2])/(pi))
@@ -80,52 +85,34 @@ class AttitudeFlightControlEnv(GazeboEnv):
 
         return [reward, done]
 
-    def compute_reward_ExpB(self):
-        # Init action reward
-        action_reward = 0
-        shap_incr_act = 0
+    def compute_reward_type_b(self):
+        # Basic reward of angles and increment in actions
 
-        # Compute shaping
-        shap_R = -100 * np.sqrt(np.power(self.obs.euler[0] / pi, 2))
-        shap_P = -100 * np.sqrt(np.power(self.obs.euler[1] / pi, 2))
-        shap_Y = -100 * np.sqrt(np.power(self.obs.euler[2] / pi, 2))
-
-        # print("Shaping pitch: " + str(shap_P))
+        # Define rewards
+        rew_incr_action = 0
+        rew_R = np.abs((self.obs.euler[0])/(pi))
+        rew_P = np.abs((self.obs.euler[1])/(pi))
+        rew_Y = np.abs((self.obs.euler[2])/(pi))
 
         if np.asarray(self.incr_action).size:
-            shap_incr_act = -1 * np.sqrt(np.power(np.clip(np.sum(np.abs(self.incr_action)) / np.asarray(self.incr_action).size, a_min=0, a_max=1), 2))
-            # print("Shaping action: " + str(shap_incr_act))
-        reward = shap_R + shap_P + shap_Y + shap_incr_act
-
-        # if np.asarray(self.incr_action).size:
-        #     action_reward = np.clip(np.sum(np.abs(self.incr_action)) / np.asarray(self.incr_action).size, a_min=0, a_max=1)
-        #     print("Action reward: " + str(action_reward))
-
-        # Compute shaping
-        if self.last_reward != 0:
-            reward = reward - self.last_reward
-            self.last_reward = shap_R + shap_P + shap_Y
-            # print("Shaped reward: " + str(reward))
-        else:
-            self.last_reward = reward
-            reward = 0
-
-        # Include action velocity penalization
-        reward += action_reward
+            rew_incr_action = 0.1 * - np.sqrt(np.power(np.clip(np.sum(np.abs(self.incr_action)) / np.asarray(self.incr_action).size, a_min=0, a_max=1), 2))
 
         if np.abs(self.obs.euler[0]) >= 0.999 * (pi / 2) or np.abs(self.obs.euler[1]) >= 0.999 * (pi / 2):
             done = True
-            reward = -50
+            reward = -1
         else:
+            rew_full_angle = np.power(1 - np.clip(((rew_P + rew_R + rew_Y) / 3),0,1),3)
+            reward = rew_full_angle + rew_incr_action
+            # print("Reward action: " + str(rew_incr_action))
+            # print("Reward angle: " + str(rew_full_angle))
             done = False
 
         return [reward, done]
 
     def compute_reward(self):
-
         # Compute reward
-        [reward, done] = self.compute_reward_ExpA()
-        # [reward, done] = self.compute_reward_ExpB()
+        # [reward, done] = self.compute_reward_type_a()
+        [reward, done] = self.compute_reward_type_b()
 
         # Store last reward
         if done:
@@ -135,22 +122,57 @@ class AttitudeFlightControlEnv(GazeboEnv):
 
         return [reward, done]
 
+    def compute_state_type_a(self, state_zero=False):
+        # State composed of absolute angles and absolute velocities
+        if not state_zero:
+            # quat = self.obs.orientation_quat
+            self.speeds = self.obs.angular_velocity_rpy / (self.omega_bounds[1])
+
+            euler_normalized = self.obs.euler / np.asarray([pi,pi,pi])
+            # euler_normalized[0] += 0.;
+            self.error_RPY = (self.random_euler - self.obs.euler)/(2*pi)
+
+            # state = np.append(self.error_RPY, self.speeds)
+
+            state = np.append(euler_normalized, self.speeds)
+        else:
+            state = np.zeros(6)
+
+        return state
+
+    def compute_state_type_b(self, state_zero=False):
+        if not state_zero:
+            # State composed of absolute angles, absolute velocities and last action increment
+            self.speeds = self.obs.angular_velocity_rpy / (self.omega_bounds[1])
+
+            euler_normalized = self.obs.euler / np.asarray([pi,pi,pi])
+
+            state = np.append(euler_normalized, self.speeds)
+
+            # Include last action
+            if np.asarray(self.incr_action).size:
+                state = np.append(state, self.incr_action)
+            else:
+                state = np.append(state, np.zeros(4))
+            # print("State: " + str(state))
+        else:
+            state = np.zeros(10)
+
+        return state
+
+    def compute_state(self, state_zero=False):
+        # state = self.compute_state_type_a(state_zero=state_zero)
+        state = self.compute_state_type_b(state_zero=state_zero)
+
+        return state
+
+    def filter_action(self, action):
+        self.action_buffer = np.roll(self.action_buffer, 1, axis=1)
+        self.action_buffer[:, 0] = action
+
+        return np.ma.average(self.action_buffer, axis=1)
 
 
-    # def compute_reward(self):
-    #     """ Compute the reward """
-    #
-    #     # self.angular_part = - np.sum(np.abs(self.error)) / 3
-    #
-    #     self.angular_part = - math.exp(np.sum(np.abs(self.error)))
-    #
-    #     reward = self.angular_part - self.last_angular_part #+ action_part
-    #     self.last_angular_part =self.angular_part
-    #
-    #     #action_part = - 0.01 * (np.sum((1 + self.last_action)/2)/4) # action part between [0 y 1]
-    #     return reward
-
-        # return -np.clip(np.sum(np.abs(self.error)) / (self.omega_bounds[1] * 3), 0, 1)
 
     def sample_target(self):
         """ sample a random angle """
@@ -176,67 +198,9 @@ class CaRL_env(AttitudeFlightControlEnv):
         self.lock = threading.RLock()
         self.start_sim = 0
 
-        self.fig, self.ax = plt.subplots(2,sharex=True)
-        # self.ax = self.fig.add_subplot(211)
-        self.xs = []
-        self.ys = []
-        self.x1 = []
-        self.x2 = []
-        self.x3 = []
-        self.x4 = []
-
         # Start monitor thread
         if self.t_monitor:
             threading.Timer(self.THREAD_PERIOD, self.monitor_frequency).start()
-
-    def animate(self):
-        # Read temperature (Celsius) from TMP102
-
-        self.index = self.index + 1
-        # print(self.index)
-        if self.index >= 100:
-
-            # Add x and y to lists
-            self.xs.append(dt.datetime.now().strftime('%H:%M:%S.%f'))
-            self.ys.append(self.last_reward)
-
-            self.x1.append(self.last_action[0])
-            self.x2.append(self.last_action[1])
-            self.x3.append(self.last_action[2])
-            self.x4.append(self.last_action[3])
-
-            # print("rew: ", self.last_reward)
-
-            # Limit x and y lists to 20 items
-            self.xs = self.xs[-20:]
-            self.ys = self.ys[-20:]
-
-            self.x1 = self.x1[-20:]
-            self.x2 = self.x2[-20:]
-            self.x3 = self.x3[-20:]
-            self.x4 = self.x4[-20:]
-
-            # Draw x and y lists
-            self.ax[0].clear()
-            self.ax[1].clear()
-
-            self.ax[0].plot(self.xs, self.ys )
-            plt.title('Reward')
-            plt.ylabel('Reward value')
-
-            self.ax[1].plot(self.xs, self.x1 ,'r',self.xs, self.x2 ,'g',self.xs, self.x3 ,'b',self.xs, self.x4 ,'k' )
-            plt.ylabel('Actions value')
-            plt.xlabel('Time')
-            # Format plot
-            plt.xticks(rotation=45, ha='right')
-            plt.subplots_adjust(bottom=0.30)
-            plt.show(block=False)
-            plt.pause(0.001)
-            self.index = 0
-
-
-# Set up plot to call animate() function periodically
-
 
     def step(self, action):
         # Update pivot for monitoring
@@ -249,27 +213,19 @@ class CaRL_env(AttitudeFlightControlEnv):
             action = np.zeros(np.asarray(action).shape)
             print("WARN: Found NaN in action space")
 
+        # Clip actions
         action = np.clip(action, self.action_space.low, self.action_space.high)
+
+        # Filter action
+        if self.ACTION_SMOOTHING:
+            action = self.filter_action(action)
 
         # Store increment in action
         if np.asarray(self.action).size and np.asarray(self.last_action).size:
-            self.incr_action = self.action - self.last_action
+            self.incr_action = (self.action - self.last_action) / 2
 
         self.last_action = self.action
         self.action = action
-
-        # the motors only can use a 50% of the power
-        limitation = False
-        if limitation :
-            coef_red = 3
-            action /= coef_red
-            action -= 1-(1/coef_red)
-
-            action_bias = 1
-            action += action_bias
-
-        self.last_action = action
-        # print(action)
 
         end_sim = self.sim_time
 
@@ -293,27 +249,7 @@ class CaRL_env(AttitudeFlightControlEnv):
             self.obs.motor_velocity = np.zeros(np.asarray(self.obs.motor_velocity).shape)
             print("WARN: Found NaN in obs.motor_velocity space")
 
-        # quat = self.obs.orientation_quat
-        self.speeds = self.obs.angular_velocity_rpy / (self.omega_bounds[1])
-        # print(self.omega_bounds)
-        # state = np.append(quat, self.speeds)
-
-        euler_normalized = self.obs.euler / np.asarray([pi,pi,pi])
-        # euler_normalized[0] += 0.;
-        self.error_RPY = (self.random_euler - self.obs.euler)/(2*pi)
-
-        # state = np.append(self.error_RPY, self.speeds)
-
-        state = np.append(euler_normalized, self.speeds)
-
-        # fd = open('/home/miguel/Desktop/simData.csv', 'a')
-        # fd.write(str(state[0])+' '+str(state[1])+' '+str(state[2]) +' '+ str(state[3]) +' '+ str(state[4]) +' '+ str(state[5])+' ' + str(action[0]) +' '+ str(action[1]) +' '+ str(action[2]) +' '+ str(action[3]) + '\n')
-        # fd.close()
-
-        # print(state)
-        # state[1] = state[1] - 0.26
-        # state[2] = state[2] - 1
-        # state=np.append(state_aux,self.random_quaternion)
+        state = self.compute_state()
 
         self.observation_history.append(np.concatenate([state, self.obs.motor_velocity]))
 
@@ -330,7 +266,7 @@ class CaRL_env(AttitudeFlightControlEnv):
             done = True
             self.last_theta_norm=0
 
-        info = {"sim_time": self.sim_time, "sp": self.omega_target, "current_rpy": self.omega_actual}
+        info = {"forwarded_action": action, "sim_time": self.sim_time, "sp": self.omega_target, "current_rpy": self.omega_actual}
         # print("state: ",state);
 
         return state, reward, done, info
@@ -338,12 +274,16 @@ class CaRL_env(AttitudeFlightControlEnv):
     def state(self):
         """ Get the current state """
 
-        return np.zeros(6)
+        return self.compute_state(state_zero=True)
 
     def reset(self, reset=True):
         # self.get_random_quat()
         self.observation_history = []
         self.start_sim = 0
+        self.last_action = []
+        self.last_reward = 0
+        self.incr_action = []
+        self.action_buffer = np.zeros((4, self.BUFFER_SIZE))
         return super(CaRL_env, self).reset(reset=reset)
 
     def monitor_frequency(self):
