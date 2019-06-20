@@ -124,6 +124,9 @@ QuadcopterWorldPlugin::QuadcopterWorldPlugin()
       fcntl(this->handle, F_GETFL, 0) | O_NONBLOCK);
   #endif
 
+   // Init variables
+   this->times = 0;
+
 }
 QuadcopterWorldPlugin::~QuadcopterWorldPlugin()
 {
@@ -540,7 +543,9 @@ void QuadcopterWorldPlugin::ApplyMotorForces(const double _dt)
     double vel = this->rotors[i].joint->GetVelocity(0);
     double error = vel - velTarget;
     double force = this->rotors[i].pid.Update(error, _dt);
-    this->rotors[i].joint->SetForce(0, force);
+    if (std::isfinite(force)){
+        this->rotors[i].joint->SetForce(0, force);
+    }
   }
 }
 

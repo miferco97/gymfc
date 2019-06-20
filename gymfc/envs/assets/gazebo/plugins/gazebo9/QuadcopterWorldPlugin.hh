@@ -184,6 +184,7 @@ struct fdmPacket
 	public: int connectionTimeoutMaxCount;
 
 	private: bool pause_sim;
+    private: int times;
   };
 }
 #endif

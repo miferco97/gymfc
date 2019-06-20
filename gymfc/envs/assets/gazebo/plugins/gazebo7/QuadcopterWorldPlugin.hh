@@ -185,6 +185,7 @@ struct fdmPacket
 
 	/// Boolean to enable intermmediate paused simulation
 	private: bool pause_sim;
+	private: int times;
   };
 }
 #endif
