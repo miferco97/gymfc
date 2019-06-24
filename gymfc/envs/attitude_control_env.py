@@ -34,6 +34,7 @@ class AttitudeFlightControlEnv(GazeboEnv):
         self.last_action = []
         self.action = []
         self.ACTION_SMOOTHING = False
+        self.PID_activated = True
         self.BUFFER_SIZE = 5
         self.action_buffer = np.zeros((4, self.BUFFER_SIZE))
 
@@ -198,6 +199,11 @@ class CaRL_env(AttitudeFlightControlEnv):
         self.lock = threading.RLock()
         self.start_sim = 0
 
+        self.past_error=np.zeros(3)
+
+        self.obs = self.step_sim(np.zeros(self.action_space.shape))
+
+
         # Start monitor thread
         if self.t_monitor:
             threading.Timer(self.THREAD_PERIOD, self.monitor_frequency).start()
@@ -230,7 +236,12 @@ class CaRL_env(AttitudeFlightControlEnv):
         end_sim = self.sim_time
 
         while (end_sim - self.start_sim) <= (1 / self.FREQUENCY):
+
+            if self.PID_activated:
+                action=self.PID_actions()
+            # print(action)
             self.obs = self.step_sim(action)
+            # print(self.obs)
             end_sim = self.sim_time
 
         # print(1 / (end_sim - self.start_sim))
@@ -284,6 +295,9 @@ class CaRL_env(AttitudeFlightControlEnv):
         self.last_reward = 0
         self.incr_action = []
         self.action_buffer = np.zeros((4, self.BUFFER_SIZE))
+
+        self.past_error=np.zeros(3)
+
         return super(CaRL_env, self).reset(reset=reset)
 
     def monitor_frequency(self):
@@ -313,6 +327,58 @@ class CaRL_env(AttitudeFlightControlEnv):
         if self.t_monitor:
             threading.Timer(self.THREAD_PERIOD, self.monitor_frequency).start()
 
+    def PID_actions(self):
+
+        #if self.PID_activated is TRUE
+
+
+        # vectors Index Roll=0, Pitch=1,Yaw=0
+
+        #PID constants
+        Kp = np.asarray([0.9,0.9,0.5])
+        Ki = np.asarray([0.0001,0.0001,0.0001])
+        Kd = np.asarray([0.0,0.0,0.0])
+
+        #initialize PID_actions as a vector
+        PID_actions = np.zeros(4)
+
+        #normalize state (- sign in pitch for coherence in errors)
+        state = self.obs.euler/np.asarray([pi,-pi,pi])
+
+        #reference state for the PID
+        state_ref=np.asarray([0.0,0.0,0.0])
+
+        #vectorized state computing
+        error = state-state_ref
+
+        #Proportional parts
+        P_error = Kp*error
+
+        #accumulated error for integral
+        self.past_error += error
+
+        # Integral part
+
+        I_error=Ki*self.past_error;
+
+        #PI Contribution
+        # D isn't implemented yet
+
+        PID_outputs = P_error + I_error
+
+        #PID_outputs to motor outputs conversion (Motor Mix)
+
+        PID_actions[0] = + PID_outputs[1] + PID_outputs[0] + PID_outputs[2]
+        PID_actions[1] = - PID_outputs[1] + PID_outputs[0] - PID_outputs[2]
+        PID_actions[2] = + PID_outputs[1] - PID_outputs[0] - PID_outputs[2]
+        PID_actions[3] = - PID_outputs[1] -PID_outputs[0]  + PID_outputs[2]
+
+        #action Clipping
+
+        PID_actions=np.clip(PID_actions,-1,1)
+
+        return PID_actions
+
 class GyroErrorFeedbackEnv(AttitudeFlightControlEnv):
     def __init__(self, **kwargs): 
         self.observation_history = []
@@ -320,10 +386,16 @@ class GyroErrorFeedbackEnv(AttitudeFlightControlEnv):
         super(GyroErrorFeedbackEnv, self).__init__(**kwargs)
         self.omega_target = self.sample_target()
 
+
     def step(self, action):
         action = np.clip(action, self.action_space.low, self.action_space.high) 
         # Step the sim
+
+
         self.obs = self.step_sim(action) # all observations
+
+
+
         self.error = (self.omega_target - self.obs.angular_velocity_rpy)
         self.observation_history.append(np.concatenate([self.error]))
         state = self.state()

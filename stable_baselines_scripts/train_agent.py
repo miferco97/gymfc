@@ -18,7 +18,7 @@ from stable_baselines import TRPO
 TEST_STEPS = 2000
 TRAINING_INTERVAL_STEPS = 10000
 TOTAL_TRAINING_STEPS = 1e12
-RESULTS_PATH = "/home/alejo/py_workspace/stable-baselines/results/" + datetime.now().strftime("%B-%d-%Y_%H_%M%p")
+RESULTS_PATH = "OB/mnt/Data_Ubuntu/results_training" + datetime.now().strftime("%B-%d-%Y_%H_%M%p")
 TRAINING_NAME = "ppo2_gymfc_pitch"
 AGENT_ALGORITHM = "PPO2" # DDPG, PPO2, TRPO
 PLOTTING_INFORMATION = True

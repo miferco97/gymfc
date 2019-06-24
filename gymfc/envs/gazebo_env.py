@@ -264,10 +264,10 @@ class GazeboEnv(gym.Env):
         """
 
         # Full range
-        RELATIVE_ACTIONS = False
+        RELATIVE_ACTIONS = True
         full_range = 1000
         percentage_of_actions = 0.25
-        offset = 500
+        offset = 600
 
         # Convert to motor input to PWM range [0, 1000] to match
         # Betaflight mixer output
@@ -404,7 +404,6 @@ class GazeboEnv(gym.Env):
         els = root.findall("./world/physics/max_step_size")
         if len(els) == 0:
             raise SDFNoMaxStepSizeFoundException()
-
         return float(els[0].text)
 
     def _get_open_port(self, start_port):
