@@ -124,7 +124,7 @@ QuadcopterWorldPlugin::QuadcopterWorldPlugin()
       fcntl(this->handle, F_GETFL, 0) | O_NONBLOCK);
   #endif
 
-   // Init variables
+  // Init variables
    this->times = 0;
 
 }
@@ -142,8 +142,8 @@ void QuadcopterWorldPlugin::Load(physics::WorldPtr _world, sdf::ElementPtr _sdf)
 
   const	std::string modelName = "testbench";
   // Force pause because we drive the simulation steps
-//  this->_world->SetPaused(TRUE);
-    this ->_world->SetPaused(FALSE);
+  //this->_world->SetPaused(TRUE);
+
   // Controller time control.
   this->lastControllerUpdateTime = 0;
 
@@ -324,7 +324,7 @@ void QuadcopterWorldPlugin::processSDF(sdf::ElementPtr _sdf)
 		}
   } 
 }
-int times = 0;
+
 void QuadcopterWorldPlugin::softReset(){
  srand (time(NULL));
 
@@ -542,7 +542,7 @@ void QuadcopterWorldPlugin::ApplyMotorForces(const double _dt)
       this->rotors[i].rotorVelocitySlowdownSim;
     double vel = this->rotors[i].joint->GetVelocity(0);
     double error = vel - velTarget;
-    double force = this->rotors[i].pid.Update(error, _dt);
+    double force = 10 * this->rotors[i].pid.Update(error, _dt);
     if (std::isfinite(force)){
         this->rotors[i].joint->SetForce(0, force);
     }

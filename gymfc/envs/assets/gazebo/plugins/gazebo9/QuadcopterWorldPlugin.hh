@@ -183,8 +183,9 @@ struct fdmPacket
 	/// before marking Quadcopter offline
 	public: int connectionTimeoutMaxCount;
 
+    /// Boolean to enable intermmediate paused simulation
 	private: bool pause_sim;
-    private: int times;
+	private: int times;
   };
 }
 #endif
