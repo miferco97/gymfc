@@ -22,9 +22,9 @@ RESULTS_PATH = "/home/alejandro/py_workspace/stable-baselines/results/" + dateti
 TRAINING_NAME = "ppo2_gymfc_pitch"
 AGENT_ALGORITHM = "PPO2" # DDPG, PPO2, TRPO
 PLOTTING_INFORMATION = True
-PRETRAINED_MODEL = "/home/alejandro/py_workspace/stable-baselines/results/June-20-2019_11_22AM_ppo2_gymfc_pitch_complete_filtered_and_penalization/ppo2_gymfc_pitch_0000590000.pkl"
-# PRETRAINED_MODEL = None
-TEST_ONLY = True
+# PRETRAINED_MODEL = "/home/alejandro/py_workspace/stable-baselines/results/June-20-2019_11_22AM_ppo2_gymfc_pitch_complete_filtered_and_penalization/ppo2_gymfc_pitch_0000590000.pkl"
+PRETRAINED_MODEL = None
+TEST_ONLY = False
 
 if (PLOTTING_INFORMATION == True):
     import rospy

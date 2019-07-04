@@ -20,7 +20,7 @@ import configparser
 import json
 logger = logging.getLogger("gymfc")
 
-REAL_FLIGHT = True
+REAL_FLIGHT = False
 if REAL_FLIGHT:
     import rospy
     from std_msgs.msg import Float32MultiArray
