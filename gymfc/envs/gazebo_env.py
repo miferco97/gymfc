@@ -20,7 +20,7 @@ import configparser
 import json
 logger = logging.getLogger("gymfc")
 
-REAL_FLIGHT = False
+REAL_FLIGHT = True
 if REAL_FLIGHT:
     import rospy
     from std_msgs.msg import Float32MultiArray
@@ -212,7 +212,8 @@ class GazeboEnv(gym.Env):
             threading.Thread(target=self.monitor_frequency).start()
 
     def state_callback(self, data):
-        self.real_observations = data.data
+        self.real_observations = np.asarray(data.data)
+        print("Received data: " + str(self.real_observations))
 
     def iterate_ros(self):
         rospy.spin()
