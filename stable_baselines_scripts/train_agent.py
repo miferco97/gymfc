@@ -18,13 +18,13 @@ from stable_baselines import TRPO
 TEST_STEPS = 2000
 TRAINING_INTERVAL_STEPS = 10000
 TOTAL_TRAINING_STEPS = 1e12
-RESULTS_PATH = "OB/mnt/Data_Ubuntu/results_training" + datetime.now().strftime("%B-%d-%Y_%H_%M%p")
+RESULTS_PATH = "/home/alejandro/py_workspace/stable-baselines/results/" + datetime.now().strftime("%B-%d-%Y_%H_%M%p")
 TRAINING_NAME = "ppo2_gymfc_pitch"
 AGENT_ALGORITHM = "PPO2" # DDPG, PPO2, TRPO
 PLOTTING_INFORMATION = True
-# PRETRAINED_MODEL = "/home/alejandro/py_workspace/stable-baselines/results/June-19-2019_15_15PM_ppo2_gymfc_pitch/ppo2_gymfc_pitch_0000030000.pkl"
-PRETRAINED_MODEL = None
-TEST_ONLY = False
+PRETRAINED_MODEL = "/home/alejandro/py_workspace/stable-baselines/results/June-20-2019_11_22AM_ppo2_gymfc_pitch_complete_filtered_and_penalization/ppo2_gymfc_pitch_0000590000.pkl"
+# PRETRAINED_MODEL = None
+TEST_ONLY = True
 
 if (PLOTTING_INFORMATION == True):
     import rospy
@@ -128,7 +128,10 @@ t = 0
 if (PLOTTING_INFORMATION == True):
     # Ros publisher
     pub = rospy.Publisher('agent_actions', Float32MultiArray, queue_size=10)
-    rospy.init_node('agent', anonymous=True)
+    try:
+        rospy.init_node('agent', anonymous=True)
+    except:
+        print("WARN: ROS node already initialized")
 
 # Main loop
 while(t < TOTAL_TRAINING_STEPS):

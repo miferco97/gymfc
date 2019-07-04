@@ -20,6 +20,13 @@ import configparser
 import json
 logger = logging.getLogger("gymfc")
 
+REAL_FLIGHT = False
+if REAL_FLIGHT:
+    import rospy
+    from std_msgs.msg import Float32MultiArray
+
+    import time, threading
+
 class PWMPacket:
     def __init__(self, pwm_values, motor_mapping, reset=False):
         """ Initialize a PWM motor packet 
@@ -167,22 +174,48 @@ class GazeboEnv(gym.Env):
         self.action_space = spaces.Box(action_low, action_high, dtype=np.float32)
 
         state = self.state()
-        self.observation_space = spaces.Box(-np.inf, np.inf, shape=state.shape, dtype=np.float32) 
+        self.observation_space = spaces.Box(-np.inf, np.inf, shape=state.shape, dtype=np.float32)
 
-        # Set up some stats to report at the end, connection are over UDP
-        # so it can be useful to see if anything is dropped
-        self.sim_stats = {}
-        self.sim_stats["steps"] = 0
-        self.sim_stats["packets_dropped"] = 0
-        self.sim_stats["time_start_seconds"] = time.time()
+        self.real_init_time = None
 
-        # Connect to the Aircraft plugin
-        writer = self.loop.create_datagram_endpoint(
-            lambda: ESCClientProtocol(self.motor_mapping),
-            remote_addr=(self.host, self.aircraft_port))
-        _, self.esc_protocol = self.loop.run_until_complete(writer) 
+        if not REAL_FLIGHT:
+            # Set up some stats to report at the end, connection are over UDP
+            # so it can be useful to see if anything is dropped
+            self.sim_stats = {}
+            self.sim_stats["steps"] = 0
+            self.sim_stats["packets_dropped"] = 0
+            self.sim_stats["time_start_seconds"] = time.time()
 
-        self._start_sim()
+            # Connect to the Aircraft plugin
+            writer = self.loop.create_datagram_endpoint(
+                lambda: ESCClientProtocol(self.motor_mapping),
+                remote_addr=(self.host, self.aircraft_port))
+            _, self.esc_protocol = self.loop.run_until_complete(writer)
+
+            self._start_sim()
+        else:
+            # Init observations
+            self.real_observations = np.zeros((3,))
+
+            # Ros publisher
+            self.pub = rospy.Publisher('COMM_OUT_MOTORS', Float32MultiArray, queue_size=10)
+
+            # Ros state_callback
+            rospy.Subscriber("COMM_IN_SENSORS", Float32MultiArray, self.state_callback)
+
+            # Ros init node
+            rospy.init_node('agent_controller', anonymous=True)
+
+            self.real_init_time = rospy.get_rostime().secs
+
+            # Start monitor thread
+            threading.Thread(target=self.monitor_frequency).start()
+
+    def state_callback(self, data):
+        self.real_observations = data.data
+
+    def iterate_ros(self):
+        rospy.spin()
 
     def load_config(self):
         if self.GYMFC_CONFIG_ENV_VAR not in os.environ:
@@ -243,7 +276,7 @@ class GazeboEnv(gym.Env):
             raise ConfigLoadException(e)
 
         
-    def step_sim(self, action):
+    def step_sim(self, action, send_actions=True):
         """ Take a single step in the simulator and return the current 
         observations.
          
@@ -252,9 +285,9 @@ class GazeboEnv(gym.Env):
         the order [rear_r, front_r, rear_l, font_l]
         """
 
-        return self.loop.run_until_complete(self._step_sim(action))
+        return self.loop.run_until_complete(self._step_sim(action, send_actions=send_actions))
 
-    async def _step_sim(self, action, reset=False):
+    async def _step_sim(self, action, reset=False, send_actions=True):
         """Complete a single simulation step, return a tuple containing
         the simulation time and the state
 
@@ -263,57 +296,95 @@ class GazeboEnv(gym.Env):
         the order [rear_r, front_r, rear_l, font_l]
         """
 
-        # Full range
-        RELATIVE_ACTIONS = True
-        full_range = 1000
-        percentage_of_actions = 0.25
-        offset = 600
+        # ******** Simulation flight configuration *******
+        if not REAL_FLIGHT:
+            # Full range
+            RELATIVE_ACTIONS = True
+            full_range = 1000
+            percentage_of_actions = 0.25
+            offset = 600
 
-        # Convert to motor input to PWM range [0, 1000] to match
-        # Betaflight mixer output
-        if RELATIVE_ACTIONS:
-            pwm_motor_values = [ (m * full_range * percentage_of_actions + offset) for m in action]
+            # Convert to motor input to PWM range [0, 1000] to match
+            # Betaflight mixer output
+            if RELATIVE_ACTIONS:
+                pwm_motor_values = [ (m * full_range * percentage_of_actions + offset) for m in action]
+            else:
+                pwm_motor_values = [ ((m + 1) * 500) for m in action]
+
+
+            # print(pwm_motor_values)
+            # Packets are sent over UDP so they can be dropped, there is no
+            # gaurentee. First we try and send command. If an error occurs in transition
+            # try again or for some reason something goes wrong in the simualator and
+            # the packet wasnt processsed correctly.
+            observations = None
+            for i in range(self.MAX_CONNECT_TRIES):
+                observations, e = await self.esc_protocol.write_motor(pwm_motor_values, reset=reset)
+                if observations:
+                    if observations.status_code == 1: # Process successful
+                        break
+                    else:
+                        print ("Previous command was not processed, resending pwm=", pwm_motor_values)
+                        if e:
+                            print(e)
+
+                if i == self.MAX_CONNECT_TRIES -1:
+                    print ("Timeout connecting to Gazebo")
+                    self.shutdown()
+                    raise SystemExit("Timeout, could not connect to Gazebo")
+                await asyncio.sleep(1)
+
+
+            # Make these visible
+            self.omega_actual = observations.angular_velocity_rpy
+
+            # begin here OBSERVATION SPACE
+
+            self.sim_time = observations.timestamp
+            # In the event a packet is dropped we could be out of sync. This has only ever been
+            # observed when dozens of simulations are run in parellel. We need the speed
+            # of UDP so until this becomes an issue just track how many we suspect were dropped.
+            if not np.isclose(self.sim_time, (self.last_sim_time + self.stepsize), 1e-6):
+                self.sim_stats["packets_dropped"] += 1
+
+            self.last_sim_time = self.sim_time
+            self.sim_stats["steps"] += 1
+
+        # ******** Real flight configuration *******
         else:
-            pwm_motor_values = [ ((m + 1) * 500) for m in action]
+            # Full range
+            RELATIVE_ACTIONS = True
+            full_range = 1000
+            percentage_of_actions = 0.25
+            offset = 600
 
-        # print(pwm_motor_values)
-        # Packets are sent over UDP so they can be dropped, there is no 
-        # gaurentee. First we try and send command. If an error occurs in transition 
-        # try again or for some reason something goes wrong in the simualator and 
-        # the packet wasnt processsed correctly. 
-        observations = None
-        for i in range(self.MAX_CONNECT_TRIES):
-            observations, e = await self.esc_protocol.write_motor(pwm_motor_values, reset=reset)
-            if observations:
-                if observations.status_code == 1: # Process successful
-                    break
-                else:
-                    print ("Previous command was not processed, resending pwm=", pwm_motor_values)
-                    if e:
-                        print(e)
+            # Convert to motor input to PWM range [0, 1000] to match
+            # Betaflight mixer output
+            if RELATIVE_ACTIONS:
+                pwm_motor_values = [(m * full_range * percentage_of_actions + offset) for m in action]
+            else:
+                pwm_motor_values = [((m + 1) * 500) for m in action]
 
-            if i == self.MAX_CONNECT_TRIES -1:
-                print ("Timeout connecting to Gazebo")
-                self.shutdown()
-                raise SystemExit("Timeout, could not connect to Gazebo")
-            await asyncio.sleep(1)
+            if send_actions:
+                # Publish action
+                msg = Float32MultiArray()
+                msg.data = pwm_motor_values
+                self.pub.publish(msg)
 
+            # Make these visible
+            self.omega_actual = self.real_observations
+            self.sim_time = rospy.get_rostime().to_sec() - self.real_init_time
 
-        # Make these visible
-        self.omega_actual = observations.angular_velocity_rpy
+            # Re-init time
+            if self.start_sim == 0:
+                self.real_init_time = rospy.get_rostime().secs
 
-        # begin here OBSERVATION SPACE
+            self.last_sim_time = self.sim_time
 
-
-        self.sim_time = observations.timestamp
-        # In the event a packet is dropped we could be out of sync. This has only ever been
-        # observed when dozens of simulations are run in parellel. We need the speed 
-        # of UDP so until this becomes an issue just track how many we suspect were dropped.
-        if not np.isclose(self.sim_time, (self.last_sim_time + self.stepsize), 1e-6):
-            self.sim_stats["packets_dropped"] += 1
-
-        self.last_sim_time = self.sim_time 
-        self.sim_stats["steps"] += 1
+            observations = FDMPacket(None)
+            observations.angular_velocity_rpy = self.real_observations
+            observations.euler = np.zeros((3,))
+            observations.motor_velocity = np.zeros((4,))
 
         return observations
     

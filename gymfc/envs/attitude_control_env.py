@@ -33,8 +33,8 @@ class AttitudeFlightControlEnv(GazeboEnv):
         self.incr_action = []
         self.last_action = []
         self.action = []
-        self.ACTION_SMOOTHING = False
-        self.PID_activated = True
+        self.ACTION_SMOOTHING = True
+        self.PID_activated = False
         self.BUFFER_SIZE = 5
         self.action_buffer = np.zeros((4, self.BUFFER_SIZE))
 
@@ -236,46 +236,59 @@ class CaRL_env(AttitudeFlightControlEnv):
         end_sim = self.sim_time
 
         while (end_sim - self.start_sim) <= (1 / self.FREQUENCY):
-
+            # If PID is active
             if self.PID_activated:
-                action=self.PID_actions()
+                action = self.PID_actions()
+
             # print(action)
-            self.obs = self.step_sim(action)
-            # print(self.obs)
+            self.obs = self.step_sim(action, send_actions=False)
             end_sim = self.sim_time
 
-        # print(1 / (end_sim - self.start_sim))
+        # print(action)
+        self.obs = self.step_sim(action)
+
+        # print("Measured frequency: " + str(1 / (end_sim - self.start_sim)))
+        # print("Measured end: " + str(end_sim) + "\t Masured start: " + str(self.start_sim))
         self.start_sim = self.sim_time
 
-        # Check if the observation has NaN
-        if not np.isfinite(self.obs.angular_velocity_rpy).any():
-            self.obs.angular_velocity_rpy = np.zeros(np.asarray(self.obs.angular_velocity_rpy).shape)
-            print("WARN: Found NaN in obs.angular_velocity_rpy space")
+        try:
 
-        if not np.isfinite(self.obs.euler).any():
-            self.obs.euler = np.zeros(np.asarray(self.obs.euler).shape)
-            print("WARN: Found NaN in obs.euler space")
+            # Check if the observation has NaN
+            if not np.isfinite(self.obs.angular_velocity_rpy).any():
+                self.obs.angular_velocity_rpy = np.zeros(np.asarray(self.obs.angular_velocity_rpy).shape)
+                print("WARN: Found NaN in obs.angular_velocity_rpy space")
 
-        if not np.isfinite(self.obs.motor_velocity).any():
-            self.obs.motor_velocity = np.zeros(np.asarray(self.obs.motor_velocity).shape)
-            print("WARN: Found NaN in obs.motor_velocity space")
+            if not np.isfinite(self.obs.euler).any():
+                self.obs.euler = np.zeros(np.asarray(self.obs.euler).shape)
+                print("WARN: Found NaN in obs.euler space")
 
-        state = self.compute_state()
+            if not np.isfinite(self.obs.motor_velocity).any():
+                self.obs.motor_velocity = np.zeros(np.asarray(self.obs.motor_velocity).shape)
+                print("WARN: Found NaN in obs.motor_velocity space")
 
-        self.observation_history.append(np.concatenate([state, self.obs.motor_velocity]))
+            state = self.compute_state()
 
-        [reward, done] = self.compute_reward()
+            self.observation_history.append(np.concatenate([state, self.obs.motor_velocity]))
 
-        # Check if reward is NaN
-        if not np.isfinite(reward):
-            reward = 0.0
-            print("WARN: Found NaN in reward")
+            [reward, done] = self.compute_reward()
 
-        # self.animate()
+            # Check if reward is NaN
+            if not np.isfinite(reward):
+                reward = 0.0
+                print("WARN: Found NaN in reward")
 
-        if self.sim_time >= self.max_sim_time:
-            done = True
-            self.last_theta_norm=0
+            # self.animate()
+
+            if self.sim_time >= self.max_sim_time:
+                done = True
+                self.last_theta_norm = 0
+
+        except:
+            info = {"forwarded_action": action, "sim_time": self.sim_time, "sp": self.omega_target,
+                    "current_rpy": self.omega_actual}
+            # print("state: ",state);
+
+            return state, 0, False, info
 
         info = {"forwarded_action": action, "sim_time": self.sim_time, "sp": self.omega_target, "current_rpy": self.omega_actual}
         # print("state: ",state);
