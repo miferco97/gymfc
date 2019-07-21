@@ -3,13 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="4567d934-7832-4756-89c5-c7896bb3fbb5" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gymfc/envs/assets/gazebo/models/quadcopter_attitude_control/model.sdf" beforeDir="false" afterPath="$PROJECT_DIR$/gymfc/envs/assets/gazebo/models/quadcopter_attitude_control/model.sdf" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gymfc/envs/assets/gazebo/models/quadcopter_model/model.sdf" beforeDir="false" afterPath="$PROJECT_DIR$/gymfc/envs/assets/gazebo/models/quadcopter_model/model.sdf" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gymfc/envs/assets/gazebo/plugins/QuadcopterWorldPlugin.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/gymfc/envs/assets/gazebo/plugins/QuadcopterWorldPlugin.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gymfc/envs/assets/gazebo/worlds/attitude.world" beforeDir="false" afterPath="$PROJECT_DIR$/gymfc/envs/assets/gazebo/worlds/attitude.world" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gymfc/envs/attitude_control_env.py" beforeDir="false" afterPath="$PROJECT_DIR$/gymfc/envs/attitude_control_env.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gymfc/envs/gazebo_env.py" beforeDir="false" afterPath="$PROJECT_DIR$/gymfc/envs/gazebo_env.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/stable_baselines_scripts/train_agent.py" beforeDir="false" afterPath="$PROJECT_DIR$/stable_baselines_scripts/train_agent.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -22,8 +15,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/gymfc/envs/attitude_control_env.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="335">
-              <caret line="207" column="26" lean-forward="true" selection-start-line="207" selection-start-column="26" selection-end-line="207" selection-end-column="26" />
+            <state relative-caret-position="157">
+              <caret line="452" column="58" lean-forward="true" selection-start-line="452" selection-start-column="58" selection-end-line="452" selection-end-column="58" />
               <folding>
                 <element signature="e#0#11#0" expanded="true" />
               </folding>
@@ -34,7 +27,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$USER_HOME$/anaconda2/envs/gymfc_37/lib/python3.7/asyncio/base_events.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="237">
+            <state relative-caret-position="9918">
               <caret line="565" selection-start-line="565" selection-end-line="565" />
             </state>
           </provider>
@@ -52,7 +45,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/gymfc/envs/assets/gazebo/plugins/AircraftModelPlugin.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="18">
+            <state relative-caret-position="756">
               <caret line="42" selection-start-line="42" selection-end-line="42" />
             </state>
           </provider>
@@ -70,7 +63,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/gymfc/envs/assets/gazebo/plugins/QuadcopterWorldPlugin.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="361">
+            <state relative-caret-position="9738">
               <caret line="541" column="22" selection-start-line="541" selection-start-column="22" selection-end-line="541" selection-end-column="22" />
             </state>
           </provider>
@@ -79,7 +72,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/gymfc/envs/gazebo_env.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="929">
+            <state relative-caret-position="4770">
               <caret line="269" column="20" selection-start-line="269" selection-start-column="20" selection-end-line="269" selection-end-column="20" />
               <folding>
                 <element signature="e#0#10#0" expanded="true" />
@@ -109,7 +102,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/gymfc/envs/assets/gazebo/models/quadcopter_model/model.sdf">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="270">
+            <state relative-caret-position="324">
               <caret line="18" column="17" selection-start-line="18" selection-start-column="17" selection-end-line="18" selection-end-column="17" />
             </state>
           </provider>
@@ -270,9 +263,8 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="1920" y="0" width="1920" height="1080" extended-state="6" />
-    <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.26462835" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.2641012" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -373,24 +365,27 @@
     <entry file="file://$PROJECT_DIR$/gymfc/envs/assets/gazebo/models/quadcopter_attitude_control/model.config">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
-    <entry file="file://$PROJECT_DIR$/gymfc/envs/assets/gazebo/plugins/AircraftModelPlugin.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="18">
-          <caret line="42" selection-start-line="42" selection-end-line="42" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/gymfc/envs/assets/gazebo/models/quadcopter_attitude_control/model.sdf">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="324">
-          <caret line="18" column="3" selection-start-line="18" selection-start-column="3" selection-end-line="18" selection-end-column="3" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/gymfc/envs/assets/gazebo/models/quadcopter_model/model.config">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="144">
           <caret line="8" column="21" selection-start-line="8" selection-start-column="21" selection-end-line="8" selection-end-column="21" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/gymfc/envs/attitude_control_env.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="157">
+          <caret line="452" column="58" lean-forward="true" selection-start-line="452" selection-start-column="58" selection-end-line="452" selection-end-column="58" />
+          <folding>
+            <element signature="e#0#11#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/anaconda2/envs/gymfc_37/lib/python3.7/asyncio/base_events.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="9918">
+          <caret line="565" selection-start-line="565" selection-end-line="565" />
         </state>
       </provider>
     </entry>
@@ -401,10 +396,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$USER_HOME$/anaconda2/envs/gymfc_37/lib/python3.7/asyncio/base_events.py">
+    <entry file="file://$PROJECT_DIR$/gymfc/envs/assets/gazebo/plugins/AircraftModelPlugin.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="237">
-          <caret line="565" selection-start-line="565" selection-end-line="565" />
+        <state relative-caret-position="756">
+          <caret line="42" selection-start-line="42" selection-end-line="42" />
         </state>
       </provider>
     </entry>
@@ -417,8 +412,25 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/gymfc/envs/assets/gazebo/plugins/QuadcopterWorldPlugin.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="361">
+        <state relative-caret-position="9738">
           <caret line="541" column="22" selection-start-line="541" selection-start-column="22" selection-end-line="541" selection-end-column="22" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/gymfc/envs/gazebo_env.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="4770">
+          <caret line="269" column="20" selection-start-line="269" selection-start-column="20" selection-end-line="269" selection-end-column="20" />
+          <folding>
+            <element signature="e#0#10#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/gymfc/envs/assets/gazebo/models/quadcopter_attitude_control/model.sdf">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="324">
+          <caret line="18" column="3" selection-start-line="18" selection-start-column="3" selection-end-line="18" selection-end-column="3" />
         </state>
       </provider>
     </entry>
@@ -431,28 +443,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/gymfc/envs/assets/gazebo/models/quadcopter_model/model.sdf">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="270">
+        <state relative-caret-position="324">
           <caret line="18" column="17" selection-start-line="18" selection-start-column="17" selection-end-line="18" selection-end-column="17" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/gymfc/envs/gazebo_env.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="929">
-          <caret line="269" column="20" selection-start-line="269" selection-start-column="20" selection-end-line="269" selection-end-column="20" />
-          <folding>
-            <element signature="e#0#10#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/gymfc/envs/attitude_control_env.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="335">
-          <caret line="207" column="26" lean-forward="true" selection-start-line="207" selection-start-column="26" selection-end-line="207" selection-end-column="26" />
-          <folding>
-            <element signature="e#0#11#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
