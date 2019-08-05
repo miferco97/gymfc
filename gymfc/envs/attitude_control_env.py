@@ -9,6 +9,8 @@ import time, threading
 import asyncio
 import nest_asyncio
 nest_asyncio.apply()
+import time
+
 
 
 import numpy as np
@@ -198,8 +200,9 @@ class CaRL_env(AttitudeFlightControlEnv):
         self.paused = False
         self.lock = threading.RLock()
         self.start_sim = 0
-
+        self.time_t=0
         self.past_error=np.zeros(3)
+        self.accum_error = np.zeros(3)
 
         self.obs = self.step_sim(np.zeros(self.action_space.shape))
 
@@ -297,6 +300,7 @@ class CaRL_env(AttitudeFlightControlEnv):
         self.action_buffer = np.zeros((4, self.BUFFER_SIZE))
 
         self.past_error=np.zeros(3)
+        self.accum_error = np.zeros(3)
 
         return super(CaRL_env, self).reset(reset=reset)
 
@@ -335,8 +339,8 @@ class CaRL_env(AttitudeFlightControlEnv):
         # vectors Index Roll=0, Pitch=1,Yaw=0
 
         #PID constants
-        Kp = np.asarray([0.9,0.9,0.5])
-        Ki = np.asarray([0.0001,0.0001,0.0001])
+        Kp = np.asarray([1,0.0,0.0])
+        Ki = np.asarray([0.0,0.000,0.000])
         Kd = np.asarray([0.0,0.0,0.0])
 
         #initialize PID_actions as a vector
@@ -355,16 +359,19 @@ class CaRL_env(AttitudeFlightControlEnv):
         P_error = Kp*error
 
         #accumulated error for integral
-        self.past_error += error
+        self.accum_error += error
 
         # Integral part
 
-        I_error=Ki*self.past_error;
+        I_error=Ki*self.accum_error;
 
         #PI Contribution
         # D isn't implemented yet
+        D_error=Kd*(error-self.past_error)/(time.time()-self.time_t)
+        self.time_t = time.time()
 
-        PID_outputs = P_error + I_error
+        self.past_error=error;
+   >     PID_outputs = P_error + I_error + D_error
 
         #PID_outputs to motor outputs conversion (Motor Mix)
 
@@ -376,7 +383,7 @@ class CaRL_env(AttitudeFlightControlEnv):
         #action Clipping
 
         PID_actions=np.clip(PID_actions,-1,1)
-
+        print(PID_actions)
         return PID_actions
 
 class GyroErrorFeedbackEnv(AttitudeFlightControlEnv):

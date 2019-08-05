@@ -338,7 +338,7 @@ void QuadcopterWorldPlugin::softReset(){
 
 //    gzdbg <<"r: "<<r<<" p:" <<p<<" :y "<< y <<"\n";
 
- if (times < 3) {
+ if (times < 1) {
     r = 0;
     p = 0;
     y = 0;
@@ -807,7 +807,7 @@ Rotor::Rotor()
 	*/
 
 	// P, I, D, Imin, Imax, cmdMax, cmdMin
-    this->pid.Init(0.1, 0, 0, 0, 0, 1.0, -1.0);
+    this->pid.Init(0.01, 0, 0, 0, 0, 1.0, -1.0);
 }
 
 

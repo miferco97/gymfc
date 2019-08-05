@@ -266,7 +266,7 @@ class GazeboEnv(gym.Env):
         # Full range
         RELATIVE_ACTIONS = True
         full_range = 1000
-        percentage_of_actions = 0.25
+        percentage_of_actions = 0.4
         offset = 600
 
         # Convert to motor input to PWM range [0, 1000] to match
