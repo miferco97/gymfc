@@ -18,11 +18,11 @@ from stable_baselines import TRPO
 TEST_STEPS = 2000
 TRAINING_INTERVAL_STEPS = 10000
 TOTAL_TRAINING_STEPS = 1e12
-RESULTS_PATH = "OB/mnt/Data_Ubuntu/results_training" + datetime.now().strftime("%B-%d-%Y_%H_%M%p")
-TRAINING_NAME = "ppo2_gymfc_pitch"
+RESULTS_PATH = "/mnt/Data_Ubuntu/results_training/" + datetime.now().strftime("%B-%d-%Y_%H_%M%p")
+TRAINING_NAME = "ppo2"
 AGENT_ALGORITHM = "PPO2" # DDPG, PPO2, TRPO
-PLOTTING_INFORMATION = True
-# PRETRAINED_MODEL = "/home/alejandro/py_workspace/stable-baselines/results/June-19-2019_15_15PM_ppo2_gymfc_pitch/ppo2_gymfc_pitch_0000030000.pkl"
+PLOTTING_INFORMATION = False
+#PRETRAINED_MODEL = "/mnt/Data_Ubuntu/results_training/August-06-2019_13_25PM_ppo2/ppo2_0000190000.pkl"
 PRETRAINED_MODEL = None
 TEST_ONLY = False
 
@@ -72,7 +72,7 @@ elif AGENT_ALGORITHM == "PPO2":
     # Load if pretrained
     if PRETRAINED_MODEL:
         del model
-        model = PPO2.load(global_path + pretrained_model_name, env=env)
+        model = PPO2.load(global_path + pretrained_model_name, env=env,tensorboard_log=global_path + "tb",cliprange=0.1)
         print("INFO: Loaded model " + global_path + pretrained_model_name)
 
 elif AGENT_ALGORITHM == "TRPO":

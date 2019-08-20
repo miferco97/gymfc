@@ -2,12 +2,16 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="4567d934-7832-4756-89c5-c7896bb3fbb5" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/gymfc.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/gymfc.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gymfc/envs/assets/gazebo/models/quadcopter_attitude_control/model.sdf" beforeDir="false" afterPath="$PROJECT_DIR$/gymfc/envs/assets/gazebo/models/quadcopter_attitude_control/model.sdf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gymfc/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/gymfc/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gymfc/envs/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/gymfc/envs/__init__.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/gymfc/envs/assets/gazebo/models/quadcopter_model/model.sdf" beforeDir="false" afterPath="$PROJECT_DIR$/gymfc/envs/assets/gazebo/models/quadcopter_model/model.sdf" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/gymfc/envs/assets/gazebo/plugins/QuadcopterWorldPlugin.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/gymfc/envs/assets/gazebo/plugins/QuadcopterWorldPlugin.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/gymfc/envs/attitude_control_env.py" beforeDir="false" afterPath="$PROJECT_DIR$/gymfc/envs/attitude_control_env.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/gymfc/envs/gazebo_env.py" beforeDir="false" afterPath="$PROJECT_DIR$/gymfc/envs/gazebo_env.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/stable_baselines_scripts/train_agent.py" beforeDir="false" afterPath="$PROJECT_DIR$/stable_baselines_scripts/train_agent.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/train_agent.py" beforeDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -15,50 +19,13 @@
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
-  <component name="FindInProjectRecents">
-    <findStrings>
-      <find>setRe</find>
-      <find>setRefe</find>
-      <find>reset</find>
-      <find>euler</find>
-      <find>soft</find>
-      <find>TRUE</find>
-      <find>observation</find>
-      <find>state</find>
-      <find>time</find>
-      <find>freq</find>
-      <find>_worl</find>
-      <find>_model</find>
-      <find>step</find>
-      <find>animate</find>
-      <find>acqu</find>
-      <find>class</find>
-      <find>PID_a</find>
-      <find>PID_act</find>
-      <find>pi</find>
-      <find>PID_actions</find>
-      <find>relat</find>
-      <find>collision</find>
-      <find>ApplyMotorForces</find>
-      <find>lastControllerUpdateTime</find>
-      <find>past_error</find>
-      <find>PID</find>
-      <find>inertial</find>
-      <find>mass</find>
-      <find>inertia</find>
-      <find>force</find>
-    </findStrings>
-    <dirStrings>
-      <dir>$PROJECT_DIR$/gymfc/envs/assets/gazebo/models</dir>
-    </dirStrings>
-  </component>
   <component name="Git.Settings">
-    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="master" />
+        <entry key="$PROJECT_DIR$" value="pid_gazebo9_dev" />
       </map>
     </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="ProjectId" id="1P0A4f7pN1a9Gtvc3dZhctJi3Rl" />
   <component name="PropertiesComponent">
@@ -96,24 +63,28 @@
     </task>
     <servers />
   </component>
-  <component name="TodoView">
-    <todo-panel id="selected-file">
-      <is-autoscroll-to-source value="true" />
-    </todo-panel>
-    <todo-panel id="all">
-      <are-packages-shown value="true" />
-      <is-autoscroll-to-source value="true" />
-    </todo-panel>
-  </component>
   <component name="Vcs.Log.Tabs.Properties">
     <option name="TAB_STATES">
       <map>
         <entry key="MAIN">
           <value>
-            <State />
+            <State>
+              <option name="COLUMN_ORDER" />
+            </State>
           </value>
         </entry>
       </map>
     </option>
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/stable_baselines_scripts/train_agent.py</url>
+          <line>9</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>

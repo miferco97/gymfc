@@ -84,7 +84,7 @@ bool getSdfParam(sdf::ElementPtr _sdf, const std::string &_name,
 
 GZ_REGISTER_WORLD_PLUGIN(QuadcopterWorldPlugin)
 
-QuadcopterWorldPlugin::QuadcopterWorldPlugin() 
+QuadcopterWorldPlugin::QuadcopterWorldPlugin()
 {
 
   // socket
@@ -322,19 +322,19 @@ void QuadcopterWorldPlugin::processSDF(sdf::ElementPtr _sdf)
 				}
 			}
 		}
-  } 
+  }
 }
 
 void QuadcopterWorldPlugin::softReset(){
- srand (time(NULL));
+ srand(time(NULL));
 
  float r = 0.85*(((rand()%314)-(314/2))/100.0);
  float p = 0.85*(((rand()%314)-(314/2))/100.0);
- float y = ((rand()%(314*2)-(314))/100.0);
+ float y = 0.5*((rand()%(314*2)-(314))/100.0);
 
 //     r = 0.0;
-//     p = 0;
-//     y = 1.2;
+     p = 0.0;
+     y = 0.0;
 
 //    gzdbg <<"r: "<<r<<" p:" <<p<<" :y "<< y <<"\n";
 
@@ -384,7 +384,7 @@ void QuadcopterWorldPlugin::loop_thread()
 		boost::this_thread::sleep(boost::posix_time::milliseconds(msPeriod));
 
 		gazebo::common::Time curTime = _world->SimTime();
-		
+
 		//Try reading from the socket, if a packet is
 		//available update the rotors
 		bool received = this->ReceiveMotorCommand();
@@ -409,9 +409,9 @@ void QuadcopterWorldPlugin::loop_thread()
 						if (std::abs(spR - rates.X()) > error || std::abs(spP + rates.Y()) > error || std::abs(spY + rates.Z()) > error){
 							//gzdbg << "Gyro r=" << rates.X() << " p=" << rates.Y() << " y=" << rates.Z() << "\n";
 							this->_world->Step(1);
-							if (!this->resetWithRandomAngularVelocity){//Only reset if trying to get to 0 rate 
+							if (!this->resetWithRandomAngularVelocity){//Only reset if trying to get to 0 rate
 								this->softReset();
-							} 
+							}
 							boost::this_thread::sleep(boost::posix_time::milliseconds(100));
 						} else {
 							  //gzdbg << "Target velocity reached! r=" << rates.X() << " p=" << rates.Y() << " y=" << rates.Z() << "\n";
@@ -420,7 +420,7 @@ void QuadcopterWorldPlugin::loop_thread()
 				}
 
                 */
-				
+
   				/*if (this->_world->SimTime().Double() != 0.0){
 					gzerr << "Reset sent but clock did not reset, at " << this->_world->SimTime().Double() << "\n";
 				}*/
@@ -437,7 +437,7 @@ void QuadcopterWorldPlugin::loop_thread()
 			}
 		} else {
 			//gzerr << "Command not received t=" << this->_world->SimTime().Double() << "\n";
-		}	
+		}
 		if (this->arduCopterOnline)
 		{
 			this->SendState(received);
@@ -542,7 +542,7 @@ void QuadcopterWorldPlugin::ApplyMotorForces(const double _dt)
       this->rotors[i].rotorVelocitySlowdownSim;
     double vel = this->rotors[i].joint->GetVelocity(0);
     double error = vel - velTarget;
-    double force = 10 * this->rotors[i].pid.Update(error, _dt);
+    double force =3.0* this->rotors[i].pid.Update(error, _dt);
     if (std::isfinite(force)){
         this->rotors[i].joint->SetForce(0, force);
     }
@@ -586,7 +586,7 @@ bool QuadcopterWorldPlugin::ReceiveMotorCommand()
       gzerr << "received bit size (" << recvSize << ") to small,"
             << " controller expected size (" << expectedPktSize << ").\n";
     }
-	
+
 	if (recvSize < expectedPktSize){
 		//gzwarn << "Received size " << recvSize << " less than the expected size of " << expectedPktSize << "\n";
 	}
@@ -809,7 +809,3 @@ Rotor::Rotor()
 	// P, I, D, Imin, Imax, cmdMax, cmdMin
     this->pid.Init(0.01, 0, 0, 0, 0, 1.0, -1.0);
 }
-
-
-
-

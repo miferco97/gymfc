@@ -266,8 +266,8 @@ class GazeboEnv(gym.Env):
         # Full range
         RELATIVE_ACTIONS = True
         full_range = 1000
-        percentage_of_actions = 0.4
-        offset = 600
+        percentage_of_actions = 0.5
+        offset = 500
 
         # Convert to motor input to PWM range [0, 1000] to match
         # Betaflight mixer output
@@ -448,9 +448,10 @@ class GazeboEnv(gym.Env):
     def reset(self, reset=True):
         self.last_sim_time = -self.stepsize
         self.loop.run_until_complete(self._step_sim(self.action_space.low, reset=reset))
-        self.omega_target = self.sample_target().copy()
+        # self.omega_target = self.sample_target().copy()
         # assert np.isclose(self.sim_time, 0.0, 1e-6), "sim time after reset is incorrect, {} ".format(self.sim_time)
-        return self.state()
+        # return self.state()
+        return np.zeros((6))
 
     def close(self):
         self.shutdown()
@@ -518,5 +519,5 @@ def quaternion_to_euler_1(x, y, z, w):
     t4 = +1.0 - 2.0 * (y * y + z * z)
     yaw = math.atan2(t3, t4)
 
-    return [roll,pitch,yaw]; #really is yaw,pitch,roll
+    return [roll,pitch,yaw] #really is yaw,pitch,roll
     # return [yaw, pitch, roll]
