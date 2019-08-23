@@ -22,6 +22,7 @@ TOTAL_TRAINING_STEPS = 1e12
 
 RESULTS_PATH = "/home/home/Data/Miguel/py_workspace/results_training/" + datetime.now().strftime("%B-%d-%Y_%H_%M%p")
 TRAINING_NAME = "ppo2"
+<<<<<<< HEAD
 AGENT_ALGORITHM = "TRPO" # DDPG, PPO2, TRPO
 PLOTTING_INFORMATION = False
 
@@ -29,6 +30,14 @@ PRETRAINED_MODEL = "/home/home/Data/Miguel/py_workspace/results_training/August-
 
 #PRETRAINED_MODEL = None
 TEST_ONLY = True
+=======
+AGENT_ALGORITHM = "DDPG" # DDPG, PPO2, TRPO
+PLOTTING_INFORMATION = False
+
+# PRETRAINED_MODEL ="/mnt/Data_Ubuntu/results_training/August-21-2019_08_12AM_ppo2/ppo2_0000220000.pkl"
+PRETRAINED_MODEL = None
+TEST_ONLY = False
+>>>>>>> 06a3abce444dec006c7fe935d286ed16895a3a96
 
 if (PLOTTING_INFORMATION == True):
     import rospy
