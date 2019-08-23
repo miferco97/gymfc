@@ -1,10 +1,10 @@
 <?xml version='1.0'?>
 <sdf version="1.6">
  <model name="quadcopter_attitude_control">
-	 
+
 	<enable_wind>true</enable_wind>
 
-	<!-- Place the aircraft 1m above the ground 
+	<!-- Place the aircraft 1m above the ground
 		 x y z r p y -->
 	<pose>0 0 1 0 0 0</pose>
 	<link name="pivot"></link>
@@ -67,7 +67,7 @@
 		<parent>world</parent>
 		<child>bar</child>
 		<pose>0 0 -.035 0 0 0</pose>
-	    <axis>  <xyz> 1 0 0 </xyz> </axis>
+	    <axis>  <xyz> 0 1 0 </xyz> </axis>
 </joint>
 
 
