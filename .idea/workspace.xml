@@ -2,16 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="4567d934-7832-4756-89c5-c7896bb3fbb5" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/gymfc.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/gymfc.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gymfc/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/gymfc/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gymfc/envs/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/gymfc/envs/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gymfc/envs/assets/gazebo/models/quadcopter_model/model.sdf" beforeDir="false" afterPath="$PROJECT_DIR$/gymfc/envs/assets/gazebo/models/quadcopter_model/model.sdf" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gymfc/envs/assets/gazebo/plugins/QuadcopterWorldPlugin.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/gymfc/envs/assets/gazebo/plugins/QuadcopterWorldPlugin.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/gymfc/envs/attitude_control_env.py" beforeDir="false" afterPath="$PROJECT_DIR$/gymfc/envs/attitude_control_env.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gymfc/envs/gazebo_env.py" beforeDir="false" afterPath="$PROJECT_DIR$/gymfc/envs/gazebo_env.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/stable_baselines_scripts/train_agent.py" beforeDir="false" afterPath="$PROJECT_DIR$/stable_baselines_scripts/train_agent.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/train_agent.py" beforeDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />

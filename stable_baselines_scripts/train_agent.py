@@ -20,9 +20,10 @@ TRAINING_INTERVAL_STEPS = 10000
 TOTAL_TRAINING_STEPS = 1e12
 RESULTS_PATH = "/mnt/Data_Ubuntu/results_training/" + datetime.now().strftime("%B-%d-%Y_%H_%M%p")
 TRAINING_NAME = "ppo2"
-AGENT_ALGORITHM = "PPO2" # DDPG, PPO2, TRPO
+AGENT_ALGORITHM = "DDPG" # DDPG, PPO2, TRPO
 PLOTTING_INFORMATION = False
-#PRETRAINED_MODEL = "/mnt/Data_Ubuntu/results_training/August-06-2019_13_25PM_ppo2/ppo2_0000190000.pkl"
+
+# PRETRAINED_MODEL ="/mnt/Data_Ubuntu/results_training/August-21-2019_08_12AM_ppo2/ppo2_0000220000.pkl"
 PRETRAINED_MODEL = None
 TEST_ONLY = False
 
@@ -67,7 +68,7 @@ if AGENT_ALGORITHM == "DDPG":
 
 elif AGENT_ALGORITHM == "PPO2":
     # Create model
-    model = PPO2(MlpPolicy, env, verbose=1, tensorboard_log=global_path + "tb", cliprange=0.1)
+    model = PPO2(MlpPolicy, env, verbose=1, tensorboard_log=global_path + "tb", cliprange=0.075)
 
     # Load if pretrained
     if PRETRAINED_MODEL:

@@ -24,7 +24,8 @@ class CaRL_env(GazeboEnv):
 
 
         self.action=[]
-        self.omega_target=[]
+        self.omega_target = []
+        self.last_action = np.asarray([0.0,0.0,0.0,0.0])
         self.start = 0
         self.th_counter = 0
         self.pivot = False
@@ -38,11 +39,11 @@ class CaRL_env(GazeboEnv):
         self.render()
 
         # Flags for changes in the enviroment.
-        self.ACTION_SMOOTHING = False
+        self.discountFactor = 0.9
+        self.ACTION_SMOOTHING = True
         self.PID_activated = False
         self.FREQUENCY = 70.0
         self.THREAD_PERIOD = (1.0 / (10.0 * self.FREQUENCY)) # 10 times faster
-
 
         # Start monitor thread
         if self.t_monitor:
@@ -65,16 +66,16 @@ class CaRL_env(GazeboEnv):
 
     def compute_reward(self, state):
         # Compute reward
-        rew_R = state[0]
-        rew_P = state[1]
-        rew_Y = state[2]
+        rew_R = np.abs(state[0])
+        rew_P = 0 #state[1]
+        rew_Y = 0 #state[2]
 
         if np.abs(self.obs.euler[0]) >= 0.999 * (pi / 2) or np.abs(self.obs.euler[1]) >= 0.999 * (pi / 2):
             done = True
             reward = -1
         else:
             done = False
-            reward = np.power(1 - np.clip(((rew_P + rew_R + rew_Y) / 3), 0, 1), 3)
+            reward = np.power(1 - np.clip(((rew_P + rew_R + rew_Y) / 3), 0, 1), 2)
 
         return [reward, done]
 
@@ -168,6 +169,7 @@ class CaRL_env(GazeboEnv):
         self.observation_history = []
         self.start_sim = 0
         self.last_action = []
+
         self.last_reward = 0
         self.incr_action = []
         self.action_buffer = np.zeros((4, self.BUFFER_SIZE))
