@@ -332,8 +332,8 @@ void QuadcopterWorldPlugin::softReset(){
  float p = 0.85*(((rand()%314)-(314/2))/100.0);
  float y = 0.5*((rand()%(314*2)-(314))/100.0);
 
-//     r = 0.0;
-     p = 0.0;
+     r = 0.0;
+     // p = 0.0;
      y = 0.0;
 
 //    gzdbg <<"r: "<<r<<" p:" <<p<<" :y "<< y <<"\n";
