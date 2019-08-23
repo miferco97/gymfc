@@ -65,9 +65,9 @@ class CaRL_env(GazeboEnv):
 
     def compute_reward(self, state):
         # Compute reward
-        rew_R = state[0]
-        rew_P = state[1]
-        rew_Y = state[2]
+        rew_R = np.abs(state[0]) + 0.1 * np.abs(state[3])
+        rew_P = 0# state[1]
+        rew_Y = 0#state[2]
 
         if np.abs(self.obs.euler[0]) >= 0.999 * (pi / 2) or np.abs(self.obs.euler[1]) >= 0.999 * (pi / 2):
             done = True
@@ -249,5 +249,3 @@ class CaRL_env(GazeboEnv):
         PID_actions=np.clip(PID_actions,-1,1)
         print(PID_actions)
         return PID_actions
-
-
