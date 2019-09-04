@@ -33,8 +33,8 @@ class AttitudeFlightControlEnv(GazeboEnv):
         self.incr_action = []
         self.last_action = []
         self.action = []
-        self.ACTION_SMOOTHING = True
-        self.PID_activated = False
+        self.ACTION_SMOOTHING = False
+        self.PID_activated = True
         self.BUFFER_SIZE = 5
         self.action_buffer = np.zeros((4, self.BUFFER_SIZE))
 
@@ -309,7 +309,8 @@ class CaRL_env(AttitudeFlightControlEnv):
         self.incr_action = []
         self.action_buffer = np.zeros((4, self.BUFFER_SIZE))
 
-        self.past_error=np.zeros(3)
+        self.accum_error=np.zeros(3)
+        self.past_error = np.zeros(3)
 
         return super(CaRL_env, self).reset(reset=reset)
 
@@ -347,10 +348,18 @@ class CaRL_env(AttitudeFlightControlEnv):
 
         # vectors Index Roll=0, Pitch=1,Yaw=0
 
+        # ***** PID simulation gains ******
         #PID constants
-        Kp = np.asarray([0.9,0.9,0.5])
-        Ki = np.asarray([0.0001,0.0001,0.0001])
-        Kd = np.asarray([0.0,0.0,0.0])
+        # Kp = np.asarray([0.9,0.9,0.5])
+        # Ki = np.asarray([0.0001,0.0001,0.0001])
+        # Kd = np.asarray([0.0,0.0,0.0])
+
+        # ***** PID real-flight gains ******
+        #PID constants
+        Kp = np.asarray([6.0,6.0,0.5])
+        # Ki = np.asarray([0.0001,0.0001,0.0001])
+        Ki = np.asarray([0.0,0.0,0.0])
+        Kd = np.asarray([2.6,2.6,0.0])
 
         #initialize PID_actions as a vector
         PID_actions = np.zeros(4)
@@ -368,16 +377,19 @@ class CaRL_env(AttitudeFlightControlEnv):
         P_error = Kp*error
 
         #accumulated error for integral
-        self.past_error += error
+        self.accum_error += error
 
         # Integral part
 
-        I_error=Ki*self.past_error;
+        I_error= Ki * self.accum_error
+
+        D_error = Kd * (error - self.past_error)
+        self.past_error = error
 
         #PI Contribution
         # D isn't implemented yet
 
-        PID_outputs = P_error + I_error
+        PID_outputs = P_error + I_error + D_error
 
         #PID_outputs to motor outputs conversion (Motor Mix)
 

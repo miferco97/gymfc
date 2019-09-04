@@ -20,7 +20,7 @@ import configparser
 import json
 logger = logging.getLogger("gymfc")
 
-REAL_FLIGHT = False
+REAL_FLIGHT = True
 if REAL_FLIGHT:
     import rospy
     from std_msgs.msg import Float32MultiArray
@@ -194,6 +194,9 @@ class GazeboEnv(gym.Env):
 
             self._start_sim()
         else:
+            # Extend test time
+            self.max_sim_time = 100000
+
             # Init observations
             self.real_observations = np.zeros((3,))
 
@@ -213,7 +216,7 @@ class GazeboEnv(gym.Env):
 
     def state_callback(self, data):
         self.real_observations = np.asarray(data.data)
-        print("Received data: " + str(self.real_observations))
+        # print("Received data: " + str(self.real_observations))
 
     def iterate_ros(self):
         rospy.spin()
@@ -356,8 +359,8 @@ class GazeboEnv(gym.Env):
             # Full range
             RELATIVE_ACTIONS = True
             full_range = 1000
-            percentage_of_actions = 0.25
-            offset = 600
+            percentage_of_actions = 0.7
+            offset = 1400
 
             # Convert to motor input to PWM range [0, 1000] to match
             # Betaflight mixer output
@@ -383,8 +386,8 @@ class GazeboEnv(gym.Env):
             self.last_sim_time = self.sim_time
 
             observations = FDMPacket(None)
-            observations.angular_velocity_rpy = self.real_observations
-            observations.euler = np.zeros((3,))
+            observations.angular_velocity_rpy = self.real_observations[3:6]
+            observations.euler = self.real_observations[0:3]
             observations.motor_velocity = np.zeros((4,))
 
         return observations
