@@ -1,7 +1,7 @@
 <?xml version='1.0'?>
 <sdf version='1.6'>
 
-	
+
   <model name='quadcopter_model'>
 	  <enable_wind>true</enable_wind>
 	  <!--<pose>0 0 0.194923 0 0 0</pose>-->
@@ -21,7 +21,7 @@
           <ixx>1.2</ixx>
           <ixy>0</ixy>
           <ixz>0</ixz>
-          <iyy>1.2</iyy>
+          <iyy>0.9</iyy>
           <iyz>0</iyz>
           <izz>0.5</izz>
         </inertia>

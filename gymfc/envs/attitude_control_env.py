@@ -39,10 +39,10 @@ class CaRL_env(GazeboEnv):
         self.render()
 
         # Flags for changes in the enviroment.
-        self.discountFactor = 0.9
-        self.ACTION_SMOOTHING = True
+        self.discountFactor = 0.90
+        self.ACTION_SMOOTHING = False
         self.PID_activated = False
-        self.FREQUENCY = 70.0
+        self.FREQUENCY = 70
         self.THREAD_PERIOD = (1.0 / (10.0 * self.FREQUENCY)) # 10 times faster
 
         # Start monitor thread
@@ -67,16 +67,17 @@ class CaRL_env(GazeboEnv):
     def compute_reward(self, state):
         # Compute reward
         # rew_R = np.abs(state[0]) + 0.1 * np.abs(state[3])
-        rew_R = 0 #np.abs(state[0])
+        rew_R = np.abs(state[0])
         rew_P = np.abs(state[1])
-        rew_Y = 0#state[2]
+
+        rew_Y = np.abs(state[2])
 
         if np.abs(self.obs.euler[0]) >= 0.999 * (pi / 2) or np.abs(self.obs.euler[1]) >= 0.999 * (pi / 2):
             done = True
             reward = -1
         else:
             done = False
-            reward = np.power(1 - np.clip(((rew_P + rew_R + rew_Y) / 3), 0, 1), 2)
+            reward = np.power(1 - np.clip(((rew_P + rew_R + rew_Y) / 3), 0, 1), 4)
 
         return [reward, done]
 
@@ -213,9 +214,9 @@ class CaRL_env(GazeboEnv):
         # vectors Index Roll=0, Pitch=1,Yaw=0
 
         #PID constants
-        Kp = np.asarray([100.0,0.0,0.0])
+        Kp = np.asarray([100.0,1000.0,0.0])
         Ki = np.asarray([0.0,0.000,0.000])
-        Kd = np.asarray([10.0,0.0,0.0])
+        Kd = np.asarray([10.0,100.0,0.0])
 
         #initialize PID_actions as a vector
         PID_actions = np.zeros(4)
@@ -250,5 +251,5 @@ class CaRL_env(GazeboEnv):
         #action Clipping
 
         PID_actions=np.clip(PID_actions,-1,1)
-        print(PID_actions)
+        # print(PID_actions)
         return PID_actions

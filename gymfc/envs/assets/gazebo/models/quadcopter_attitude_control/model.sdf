@@ -62,8 +62,8 @@
 
 
 
-<!-- <joint name="base2_joint" type="ball"> -->
-<joint name="base2_joint" type="revolute">
+<joint name="base2_joint" type="ball">
+<!--  <joint name="base2_joint" type="revolute"> -->
 		<parent>world</parent>
 		<child>bar</child>
 		<pose>0 0 -.035 0 0 0</pose>

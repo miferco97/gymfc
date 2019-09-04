@@ -21,24 +21,17 @@ TRAINING_INTERVAL_STEPS = 10000
 TOTAL_TRAINING_STEPS = 1e12
 
 RESULTS_PATH = "/home/home/Data/Miguel/py_workspace/results_training/" + datetime.now().strftime("%B-%d-%Y_%H_%M%p")
-TRAINING_NAME = "ppo2"
-<<<<<<< HEAD
-AGENT_ALGORITHM = "TRPO" # DDPG, PPO2, TRPO
-PLOTTING_INFORMATION = False
+# TRAINING_NAME = "ppo2"
+TRAINING_NAME = "ddpg_3angles"
 
-PRETRAINED_MODEL = "/home/home/Data/Miguel/py_workspace/results_training/August-22-2019_14_00PM_ppo2/ppo2_0000660000.pkl"
-
-#PRETRAINED_MODEL = None
-TEST_ONLY = True
-=======
 AGENT_ALGORITHM = "DDPG" # DDPG, PPO2, TRPO
 PLOTTING_INFORMATION = False
 
-# PRETRAINED_MODEL ="/mnt/Data_Ubuntu/results_training/August-21-2019_08_12AM_ppo2/ppo2_0000220000.pkl"
-PRETRAINED_MODEL = None
-TEST_ONLY = False
->>>>>>> 06a3abce444dec006c7fe935d286ed16895a3a96
+#PRETRAINED_MODEL = "/home/home/Data/Miguel/py_workspace/results_training/August-22-2019_14_00PM_ppo2/ppo2_0000660000.pkl"
 
+PRETRAINED_MODEL = None
+
+TEST_ONLY = False
 if (PLOTTING_INFORMATION == True):
     import rospy
     from std_msgs.msg import Float32MultiArray
@@ -80,7 +73,7 @@ if AGENT_ALGORITHM == "DDPG":
 
 elif AGENT_ALGORITHM == "PPO2":
     # Create model
-    model = PPO2(MlpPolicy, env, verbose=1, tensorboard_log=global_path + "tb", cliprange=0.075)
+    model = PPO2(MlpPolicy, env, verbose=1, tensorboard_log=global_path + "tb", cliprange=0.005)
 
     # Load if pretrained
     if PRETRAINED_MODEL:
@@ -90,7 +83,7 @@ elif AGENT_ALGORITHM == "PPO2":
 
 elif AGENT_ALGORITHM == "TRPO":
     # Create model
-    model = TRPO(MlpPolicy, env, verbose=1, tensorboard_log=global_path + "tb")
+    model = TRPO(MlpPolicy, env, verbose=1, tensorboard_log=global_path + "tb",max_kl=0.005)
 
     # Load if pretrained
     if PRETRAINED_MODEL:
