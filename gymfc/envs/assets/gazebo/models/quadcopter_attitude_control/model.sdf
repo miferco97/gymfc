@@ -10,13 +10,13 @@
 	<link name="pivot"></link>
 
 	<!-- Fix the pivot base to the world -->
-<!--
+
 	<joint name="base_joint" type="fixed">
 		<parent>world</parent>
 		<child>pivot</child>
 		<pose>0 0 0 0 0 0</pose>
 	</joint>
--->
+
 	<include>
 		<uri>model://quadcopter</uri>
 	</include>

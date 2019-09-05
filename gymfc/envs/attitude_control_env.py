@@ -34,7 +34,6 @@ class AttitudeFlightControlEnv(GazeboEnv):
         self.last_action = []
         self.action = []
         self.ACTION_SMOOTHING = False
-        self.PID_activated = True
         self.BUFFER_SIZE = 5
         self.action_buffer = np.zeros((4, self.BUFFER_SIZE))
 
@@ -129,7 +128,7 @@ class AttitudeFlightControlEnv(GazeboEnv):
             # quat = self.obs.orientation_quat
             self.speeds = self.obs.angular_velocity_rpy / (self.omega_bounds[1])
 
-            euler_normalized = self.obs.euler / np.asarray([pi,pi,pi])
+            euler_normalized = self.obs.euler / np.asarray([pi, -pi, pi])
             # euler_normalized[0] += 0.;
             self.error_RPY = (self.random_euler - self.obs.euler)/(2*pi)
 
@@ -146,7 +145,7 @@ class AttitudeFlightControlEnv(GazeboEnv):
             # State composed of absolute angles, absolute velocities and last action increment
             self.speeds = self.obs.angular_velocity_rpy / (self.omega_bounds[1])
 
-            euler_normalized = self.obs.euler / np.asarray([pi,pi,pi])
+            euler_normalized = self.obs.euler / np.asarray([pi, -pi, pi])
 
             state = np.append(euler_normalized, self.speeds)
 
@@ -214,38 +213,36 @@ class CaRL_env(AttitudeFlightControlEnv):
         self.pivot = True
         self.lock.release()
 
+        # Store local variable
+        action_local = np.asarray(action)
+
         # Check if action contains NaN
-        if not np.isfinite(action).any():
-            action = np.zeros(np.asarray(action).shape)
+        if not np.isfinite(action_local).any():
+            action_local = np.zeros(np.asarray(action_local).shape)
             print("WARN: Found NaN in action space")
 
         # Clip actions
-        action = np.clip(action, self.action_space.low, self.action_space.high)
+        action_local = np.clip(action_local, self.action_space.low, self.action_space.high)
 
         # Filter action
         if self.ACTION_SMOOTHING:
-            action = self.filter_action(action)
+            action_local = self.filter_action(action_local)
 
         # Store increment in action
         if np.asarray(self.action).size and np.asarray(self.last_action).size:
             self.incr_action = (self.action - self.last_action) / 2
 
         self.last_action = self.action
-        self.action = action
+        self.action = action_local
 
         end_sim = self.sim_time
 
         while (end_sim - self.start_sim) <= (1 / self.FREQUENCY):
-            # If PID is active
-            if self.PID_activated:
-                action = self.PID_actions()
-
-            # print(action)
-            self.obs = self.step_sim(action, send_actions=False)
+            # print(action_local)
+            self.obs = self.step_sim(action_local, send_actions=False)
             end_sim = self.sim_time
 
-        # print(action)
-        self.obs = self.step_sim(action)
+        self.obs = self.step_sim(action_local)
 
         # print("Measured frequency: " + str(1 / (end_sim - self.start_sim)))
         # print("Measured end: " + str(end_sim) + "\t Masured start: " + str(self.start_sim))
@@ -284,13 +281,13 @@ class CaRL_env(AttitudeFlightControlEnv):
                 self.last_theta_norm = 0
 
         except:
-            info = {"forwarded_action": action, "sim_time": self.sim_time, "sp": self.omega_target,
+            info = {"forwarded_action": action_local, "sim_time": self.sim_time, "sp": self.omega_target,
                     "current_rpy": self.omega_actual}
             # print("state: ",state);
 
             return state, 0, False, info
 
-        info = {"forwarded_action": action, "sim_time": self.sim_time, "sp": self.omega_target, "current_rpy": self.omega_actual}
+        info = {"forwarded_action": action_local, "sim_time": self.sim_time, "sp": self.omega_target, "current_rpy": self.omega_actual}
         # print("state: ",state);
 
         return state, reward, done, info
@@ -341,161 +338,102 @@ class CaRL_env(AttitudeFlightControlEnv):
         if self.t_monitor:
             threading.Timer(self.THREAD_PERIOD, self.monitor_frequency).start()
 
-    def PID_actions(self):
+# class GyroErrorFeedbackEnv(AttitudeFlightControlEnv):
+#     def __init__(self, **kwargs):
+#         self.observation_history = []
+#         self.memory_size = kwargs["memory_size"]
+#         super(GyroErrorFeedbackEnv, self).__init__(**kwargs)
+#         self.omega_target = self.sample_target()
+#
+#
+#     def step(self, action):
+#         print("step 2")
+#
+#         action = np.clip(action, self.action_space.low, self.action_space.high)
+#         # Step the sim
+#
+#
+#         self.obs = self.step_sim(action) # all observations
+#
+#
+#
+#         self.error = (self.omega_target - self.obs.angular_velocity_rpy)
+#         self.observation_history.append(np.concatenate([self.error]))
+#         state = self.state()
+#         done = self.sim_time >= self.max_sim_time
+#         reward = self.compute_reward()
+#         info = {"sim_time": self.sim_time, "sp": self.omega_target, "current_rpy": self.omega_actual}
+#         return state, reward, done, info
+#
+#     def state(self):
+#         """ Get the current state """
+#         # The newest will be at the end of the array
+#         memory = np.array(self.observation_history[-self.memory_size:])
+#         return np.pad(memory.ravel(),
+#                       ( (3 * self.memory_size) - memory.size, 0),
+#                       'constant', constant_values=(0))
+#
+#     def reset(self):
+#         self.observation_history = []
+#         return super(GyroErrorFeedbackEnv, self).reset()
 
-        #if self.PID_activated is TRUE
+# class GyroErrorESCVelocityFeedbackEnv(AttitudeFlightControlEnv):
+#     def __init__(self, **kwargs):
+#         self.observation_history = []
+#         self.memory_size = kwargs["memory_size"]
+#         super(GyroErrorESCVelocityFeedbackEnv, self).__init__(**kwargs)
+#         self.omega_target = self.sample_target()
+#
+#     def step(self, action):
+#         print("step 3")
+#         action = np.clip(action, self.action_space.low, self.action_space.high)
+#         # Step the sim
+#         self.obs = self.step_sim(action)
+#         self.error = self.omega_target - self.obs.angular_velocity_rpy
+#         self.observation_history.append(np.concatenate([self.error, self.obs.motor_velocity]))
+#         state = self.state()
+#         done = self.sim_time >= self.max_sim_time
+#         reward = self.compute_reward()
+#         info = {"sim_time": self.sim_time, "sp": self.omega_target, "current_rpy": self.omega_actual}
+#
+#         return state, reward, done, info
+#
+#     def state(self):
+#         """ Get the current state """
+#         # The newest will be at the end of the array
+#         memory = np.array(self.observation_history[-self.memory_size:])
+#         return np.pad(memory.ravel(),
+#                       (( (3+self.motor_count) * self.memory_size) - memory.size, 0),
+#                       'constant', constant_values=(0))
+#
+#     def reset(self):
+#         self.observation_history = []
+#         return super(GyroErrorESCVelocityFeedbackEnv, self).reset()
 
-
-        # vectors Index Roll=0, Pitch=1,Yaw=0
-
-        # ***** PID simulation gains ******
-        #PID constants
-        # Kp = np.asarray([0.9,0.9,0.5])
-        # Ki = np.asarray([0.0001,0.0001,0.0001])
-        # Kd = np.asarray([0.0,0.0,0.0])
-
-        # ***** PID real-flight gains ******
-        #PID constants
-        Kp = np.asarray([6.0,6.0,0.5])
-        # Ki = np.asarray([0.0001,0.0001,0.0001])
-        Ki = np.asarray([0.0,0.0,0.0])
-        Kd = np.asarray([2.6,2.6,0.0])
-
-        #initialize PID_actions as a vector
-        PID_actions = np.zeros(4)
-
-        #normalize state (- sign in pitch for coherence in errors)
-        state = self.obs.euler/np.asarray([pi,-pi,pi])
-
-        #reference state for the PID
-        state_ref=np.asarray([0.0,0.0,0.0])
-
-        #vectorized state computing
-        error = state-state_ref
-
-        #Proportional parts
-        P_error = Kp*error
-
-        #accumulated error for integral
-        self.accum_error += error
-
-        # Integral part
-
-        I_error= Ki * self.accum_error
-
-        D_error = Kd * (error - self.past_error)
-        self.past_error = error
-
-        #PI Contribution
-        # D isn't implemented yet
-
-        PID_outputs = P_error + I_error + D_error
-
-        #PID_outputs to motor outputs conversion (Motor Mix)
-
-        PID_actions[0] = + PID_outputs[1] + PID_outputs[0] + PID_outputs[2]
-        PID_actions[1] = - PID_outputs[1] + PID_outputs[0] - PID_outputs[2]
-        PID_actions[2] = + PID_outputs[1] - PID_outputs[0] - PID_outputs[2]
-        PID_actions[3] = - PID_outputs[1] -PID_outputs[0]  + PID_outputs[2]
-
-        #action Clipping
-
-        PID_actions=np.clip(PID_actions,-1,1)
-
-        return PID_actions
-
-class GyroErrorFeedbackEnv(AttitudeFlightControlEnv):
-    def __init__(self, **kwargs): 
-        self.observation_history = []
-        self.memory_size = kwargs["memory_size"]
-        super(GyroErrorFeedbackEnv, self).__init__(**kwargs)
-        self.omega_target = self.sample_target()
-
-
-    def step(self, action):
-        action = np.clip(action, self.action_space.low, self.action_space.high) 
-        # Step the sim
-
-
-        self.obs = self.step_sim(action) # all observations
-
-
-
-        self.error = (self.omega_target - self.obs.angular_velocity_rpy)
-        self.observation_history.append(np.concatenate([self.error]))
-        state = self.state()
-        done = self.sim_time >= self.max_sim_time
-        reward = self.compute_reward()
-        info = {"sim_time": self.sim_time, "sp": self.omega_target, "current_rpy": self.omega_actual}
-        return state, reward, done, info
-
-    def state(self):
-        """ Get the current state """
-        # The newest will be at the end of the array
-        memory = np.array(self.observation_history[-self.memory_size:])
-        return np.pad(memory.ravel(), 
-                      ( (3 * self.memory_size) - memory.size, 0), 
-                      'constant', constant_values=(0)) 
-
-    def reset(self):
-        self.observation_history = []
-        return super(GyroErrorFeedbackEnv, self).reset()
-
-class GyroErrorESCVelocityFeedbackEnv(AttitudeFlightControlEnv):
-    def __init__(self, **kwargs): 
-        self.observation_history = []
-        self.memory_size = kwargs["memory_size"]
-        super(GyroErrorESCVelocityFeedbackEnv, self).__init__(**kwargs)
-        self.omega_target = self.sample_target()
-
-    def step(self, action):
-        action = np.clip(action, self.action_space.low, self.action_space.high) 
-        # Step the sim
-        self.obs = self.step_sim(action)
-        self.error = self.omega_target - self.obs.angular_velocity_rpy
-        self.observation_history.append(np.concatenate([self.error, self.obs.motor_velocity]))
-        state = self.state()
-        done = self.sim_time >= self.max_sim_time
-        reward = self.compute_reward()
-        info = {"sim_time": self.sim_time, "sp": self.omega_target, "current_rpy": self.omega_actual}
-
-        return state, reward, done, info
-
-    def state(self):
-        """ Get the current state """
-        # The newest will be at the end of the array
-        memory = np.array(self.observation_history[-self.memory_size:])
-        return np.pad(memory.ravel(), 
-                      (( (3+self.motor_count) * self.memory_size) - memory.size, 0), 
-                      'constant', constant_values=(0)) 
-
-    def reset(self):
-        self.observation_history = []
-        return super(GyroErrorESCVelocityFeedbackEnv, self).reset()
-
-class GyroErrorESCVelocityFeedbackContinuousEnv(GyroErrorESCVelocityFeedbackEnv):
-    def __init__(self, **kwargs): 
-        self.command_time_off = kwargs["command_time_off"]
-        self.command_time_on = kwargs["command_time_on"]
-        self.command_off_time = None
-        super(GyroErrorESCVelocityFeedbackContinuousEnv, self).__init__(**kwargs)
-
-    def step(self, action):
-        """ Sample a random angular velocity """
-        ret = super(GyroErrorESCVelocityFeedbackContinuousEnv, self).step(action) 
-
-        # Update the target angular velocity 
-        if not self.command_off_time:
-            self.command_off_time = self.np_random.uniform(*self.command_time_on)
-        elif self.sim_time >= self.command_off_time: # Issue new command
-            # Commands are executed as pulses, always returning to center
-            if (self.omega_target == np.zeros(3)).all():
-                self.omega_target = self.sample_target() 
-                self.command_off_time = self.sim_time  + self.np_random.uniform(*self.command_time_on)
-            else:
-                self.omega_target = np.zeros(3)
-                self.command_off_time = self.sim_time  + self.np_random.uniform(*self.command_time_off) 
-
-        return ret 
+# class GyroErrorESCVelocityFeedbackContinuousEnv(GyroErrorESCVelocityFeedbackEnv):
+#     def __init__(self, **kwargs):
+#         self.command_time_off = kwargs["command_time_off"]
+#         self.command_time_on = kwargs["command_time_on"]
+#         self.command_off_time = None
+#         super(GyroErrorESCVelocityFeedbackContinuousEnv, self).__init__(**kwargs)
+#
+#     def step(self, action):
+#         print("step 4")
+#         """ Sample a random angular velocity """
+#         ret = super(GyroErrorESCVelocityFeedbackContinuousEnv, self).step(action)
+#
+#         # Update the target angular velocity
+#         if not self.command_off_time:
+#             self.command_off_time = self.np_random.uniform(*self.command_time_on)
+#         elif self.sim_time >= self.command_off_time: # Issue new command
+#             # Commands are executed as pulses, always returning to center
+#             if (self.omega_target == np.zeros(3)).all():
+#                 self.omega_target = self.sample_target()
+#                 self.command_off_time = self.sim_time  + self.np_random.uniform(*self.command_time_on)
+#             else:
+#                 self.omega_target = np.zeros(3)
+#                 self.command_off_time = self.sim_time  + self.np_random.uniform(*self.command_time_off)
+#
+#         return ret
 
 

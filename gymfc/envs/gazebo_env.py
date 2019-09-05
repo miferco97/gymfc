@@ -20,7 +20,7 @@ import configparser
 import json
 logger = logging.getLogger("gymfc")
 
-REAL_FLIGHT = True
+REAL_FLIGHT = False
 if REAL_FLIGHT:
     import rospy
     from std_msgs.msg import Float32MultiArray
@@ -198,7 +198,7 @@ class GazeboEnv(gym.Env):
             self.max_sim_time = 100000
 
             # Init observations
-            self.real_observations = np.zeros((3,))
+            self.real_observations = np.zeros((6,))
 
             # Ros publisher
             self.pub = rospy.Publisher('COMM_OUT_MOTORS', Float32MultiArray, queue_size=10)
