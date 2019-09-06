@@ -10,5 +10,6 @@ from stable_baselines.ppo2 import PPO2
 from stable_baselines.trpo_mpi import TRPO
 from stable_baselines.sac import SAC
 from stable_baselines.custom_agents import POSITION_PID
+from stable_baselines.custom_agents import POS_VEL_PID
 
 __version__ = "2.6.0a0"

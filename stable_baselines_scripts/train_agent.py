@@ -14,6 +14,7 @@ from stable_baselines import DDPG
 from stable_baselines.ddpg.noise import NormalActionNoise, OrnsteinUhlenbeckActionNoise, AdaptiveParamNoiseSpec
 from stable_baselines import TRPO
 from stable_baselines import POSITION_PID
+from stable_baselines import POS_VEL_PID
 
 # Preliminary parameter definition
 TEST_STEPS = 10000
@@ -21,8 +22,8 @@ TRAINING_INTERVAL_STEPS = 10000
 TOTAL_TRAINING_STEPS = 1e12
 RESULTS_PATH = "/home/alejandro/py_workspace/stable-baselines/results/" + datetime.now().strftime("%B-%d-%Y_%H_%M%p")
 TRAINING_NAME = "ppo2_gymfc_pitch"
-AGENT_ALGORITHM = "POSITION_PID" # DDPG, PPO2, TRPO, POSITION_PID
-PLOTTING_INFORMATION = False
+AGENT_ALGORITHM = "POS_VEL_PID" # DDPG, PPO2, TRPO, POSITION_PID, POS_VEL_PID
+PLOTTING_INFORMATION = True
 PRETRAINED_MODEL = "/home/alejandro/py_workspace/stable-baselines/results/June-20-2019_11_22AM_ppo2_gymfc_pitch_complete_filtered_and_penalization/ppo2_gymfc_pitch_0000590000.pkl"
 # PRETRAINED_MODEL = None
 TEST_ONLY = True
@@ -88,7 +89,16 @@ elif AGENT_ALGORITHM == "TRPO":
 
 elif AGENT_ALGORITHM == "POSITION_PID":
     # Create model
-    model = POSITION_PID(env, 4.0, 0.0, 1.6, 4.0, 0.0, 1.6, 0.05, 0.0, 0.0)
+    model = POSITION_PID(env,  13.0, 0.0, 10.0,
+                               13.0, 0.0, 10.0,
+                               1.5, 0.0,  10.0)
+
+elif AGENT_ALGORITHM == "POS_VEL_PID":
+    # Create model
+    model = POS_VEL_PID(env,   1.5, 1.5, 0.05,
+                               20.0, 0.0, 0.0,
+                               20.0, 0.0, 0.0,
+                               7.0, 0.0, 0.0)
 
 else:
     raise RuntimeError('ERROR: Agent not recognized')

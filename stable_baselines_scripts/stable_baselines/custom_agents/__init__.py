@@ -1,1 +1,2 @@
 from stable_baselines.custom_agents.position_pid import POSITION_PID
+from stable_baselines.custom_agents.position_pid import POS_VEL_PID

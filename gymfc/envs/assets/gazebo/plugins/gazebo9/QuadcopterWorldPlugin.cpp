@@ -330,7 +330,7 @@ void QuadcopterWorldPlugin::softReset(){
 
  float r = 0.85*(((rand()%314)-(314/2))/100.0);
  float p = 0.85*(((rand()%314)-(314/2))/100.0);
- float y = ((rand()%(314*2)-(314))/100.0);
+ float y = 0.45 * ((rand()%(314*2)-(314))/100.0);
 
 //     r = 0.0;
 //     p = 0;
@@ -338,7 +338,7 @@ void QuadcopterWorldPlugin::softReset(){
 
 //    gzdbg <<"r: "<<r<<" p:" <<p<<" :y "<< y <<"\n";
 
- if (times < 3) {
+ if (times < 1) {
     r = 0;
     p = 0;
     y = 0;
@@ -542,7 +542,7 @@ void QuadcopterWorldPlugin::ApplyMotorForces(const double _dt)
       this->rotors[i].rotorVelocitySlowdownSim;
     double vel = this->rotors[i].joint->GetVelocity(0);
     double error = vel - velTarget;
-    double force = 10 * this->rotors[i].pid.Update(error, _dt);
+    double force = 20.0 * this->rotors[i].pid.Update(error, _dt);
     if (std::isfinite(force)){
         this->rotors[i].joint->SetForce(0, force);
     }
