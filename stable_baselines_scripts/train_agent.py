@@ -4,7 +4,10 @@ import gymfc
 import numpy as np
 from datetime import datetime
 import os
+import os.path
 from shutil import copyfile
+import yaml
+import sys
 
 from stable_baselines.common.policies import MlpPolicy
 from stable_baselines.ddpg.policies import LnMlpPolicy
@@ -16,17 +19,47 @@ from stable_baselines import TRPO
 from stable_baselines import POSITION_PID
 from stable_baselines import POS_VEL_PID
 
-# Preliminary parameter definition
-TEST_STEPS = 10000
-TRAINING_INTERVAL_STEPS = 10000
-TOTAL_TRAINING_STEPS = 1e12
-RESULTS_PATH = "/home/alejandro/py_workspace/stable-baselines/results/" + datetime.now().strftime("%B-%d-%Y_%H_%M%p")
-TRAINING_NAME = "ppo2_gymfc_pitch"
-AGENT_ALGORITHM = "POS_VEL_PID" # DDPG, PPO2, TRPO, POSITION_PID, POS_VEL_PID
-PLOTTING_INFORMATION = True
-PRETRAINED_MODEL = "/home/alejandro/py_workspace/stable-baselines/results/June-20-2019_11_22AM_ppo2_gymfc_pitch_complete_filtered_and_penalization/ppo2_gymfc_pitch_0000590000.pkl"
-# PRETRAINED_MODEL = None
-TEST_ONLY = True
+class ConfigLoadException(Exception):
+    pass
+
+if len(sys.argv) < 2:
+    message = "YAML config file not provided"
+    raise ConfigLoadException(message)
+else:
+    config_file = sys.argv[1]
+
+if "GYMFC_CONFIG" not in os.environ:
+    message = (
+            "Environment variable {} not set. " +
+            "Before running the environment please execute, " +
+            "'export {}=path/to/config/file' " +
+            "or add the variable to your .bashrc."
+    ).format("GYMFC_CONFIG", "GYMFC_CONFIG")
+    raise ConfigLoadException(message)
+
+config_path = os.environ["GYMFC_CONFIG"]
+config_path = config_path.rsplit('/', 1)[0]
+
+# Read YAML parameters
+with open(os.path.join(config_path, config_file), 'r') as stream:
+    data_loaded = yaml.load(stream)
+
+# Print information
+print("------ Configuration parameters ------")
+print(data_loaded)
+print("--------------------------------------")
+
+# Parameter reading
+TEST_STEPS = int(data_loaded['test_steps'])
+TRAINING_INTERVAL_STEPS = int(data_loaded['training_interval_steps'])
+TOTAL_TRAINING_STEPS = int(float(data_loaded['total_training_steps']))
+RESULTS_PATH = os.environ["HOME"] + "/" + data_loaded['results_path'] + datetime.now().strftime("%B-%d-%Y_%H_%M%p")
+TRAINING_NAME = data_loaded['training_name']
+AGENT_ALGORITHM = data_loaded['agent_algorithm'] # DDPG, PPO2, TRPO, POSITION_PID, POS_VEL_PID
+PLOTTING_INFORMATION = bool(int(data_loaded['plotting_information']))
+PRETRAINED_MODEL = os.environ["HOME"] + "/" + data_loaded['pretrained_model']
+TEST_ONLY = bool(int(data_loaded['test_only']))
+
 
 if (PLOTTING_INFORMATION == True):
     import rospy

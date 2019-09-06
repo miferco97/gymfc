@@ -1,0 +1,10 @@
+# Configuration file
+test_steps: 10000
+training_interval_steps: 10000
+total_training_steps: 1e12
+results_path: py_workspace/stable-baselines/results/
+training_name: ppo2_gymfc_pitch
+agent_algorithm: POS_VEL_PID # DDPG, PPO2, TRPO, POSITION_PID, POS_VEL_PID
+plotting_information: 1
+pretrained_model: py_workspace/stable-baselines/results/June-20-2019_11_22AM_ppo2_gymfc_pitch_complete_filtered_and_penalization/ppo2_gymfc_pitch_0000590000.pkl
+test_only: 1
