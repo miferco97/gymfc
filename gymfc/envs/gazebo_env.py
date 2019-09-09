@@ -20,12 +20,7 @@ import configparser
 import json
 logger = logging.getLogger("gymfc")
 
-REAL_FLIGHT = False
-if REAL_FLIGHT:
-    import rospy
-    from std_msgs.msg import Float32MultiArray
-
-    import time, threading
+import time, threading
 
 class PWMPacket:
     def __init__(self, pwm_values, motor_mapping, reset=False):
@@ -153,11 +148,17 @@ class GazeboEnv(gym.Env):
         # Init the seed variable, user can override this
         self.seed()
 
+        self.REAL_FLIGHT = False
+
         try:
             self.load_config()
         except ConfigLoadException as e:
             raise SystemExit(e)
 
+
+        if self.REAL_FLIGHT:
+            import rospy
+            from std_msgs.msg import Float32MultiArray
 
         # Track process IDs so we can kill em
         self.pids = []
@@ -178,7 +179,7 @@ class GazeboEnv(gym.Env):
 
         self.real_init_time = None
 
-        if not REAL_FLIGHT:
+        if not self.REAL_FLIGHT:
             # Set up some stats to report at the end, connection are over UDP
             # so it can be useful to see if anything is dropped
             self.sim_stats = {}
@@ -219,6 +220,10 @@ class GazeboEnv(gym.Env):
         # print("Received data: " + str(self.real_observations))
 
     def iterate_ros(self):
+        if self.REAL_FLIGHT:
+            import rospy
+            from std_msgs.msg import Float32MultiArray
+
         rospy.spin()
 
     def load_config(self):
@@ -243,6 +248,9 @@ class GazeboEnv(gym.Env):
             gz = config["Gazebo"]
             ac = config["Aircraft"]
             train = config["Training"]
+
+            # Sim or real flight
+            self.REAL_FLIGHT = bool(int(common["RealFlight"]))
 
             # Gazebo specific 
             self.setup_file = gz["SetupFile"]
@@ -301,7 +309,7 @@ class GazeboEnv(gym.Env):
         """
 
         # ******** Simulation flight configuration *******
-        if not REAL_FLIGHT:
+        if not self.REAL_FLIGHT:
             # Full range
             RELATIVE_ACTIONS = True
             full_range = 1000
@@ -356,6 +364,10 @@ class GazeboEnv(gym.Env):
 
         # ******** Real flight configuration *******
         else:
+            if self.REAL_FLIGHT:
+                import rospy
+                from std_msgs.msg import Float32MultiArray
+
             # Full range
             RELATIVE_ACTIONS = True
             full_range = 1000
@@ -397,7 +409,7 @@ class GazeboEnv(gym.Env):
         self.shutdown()
 
     def update_env_variables(self, source_file):
-	# Source the file in the current environment then use env to dump the 
+        # Source the file in the current environment then use env to dump the
         # current environment variables (including the ones sourced) then
         # set these variables in the python environment 
         command = ". {}; env".format(source_file)

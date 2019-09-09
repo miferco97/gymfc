@@ -8,6 +8,7 @@ default_kwargs = {
 kwargs = {
     "memory_size": 1,
     "max_sim_time": 8,
+    "frequency": 70.0,
 }
 kwargs.update(default_kwargs)
 id = 'CaRL_GymFC-MotorVel_M4_Ep-v0'

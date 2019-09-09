@@ -50,18 +50,17 @@ print(data_loaded)
 print("--------------------------------------")
 
 # Parameter reading
-TEST_STEPS = int(data_loaded['test_steps'])
-TRAINING_INTERVAL_STEPS = int(data_loaded['training_interval_steps'])
-TOTAL_TRAINING_STEPS = int(float(data_loaded['total_training_steps']))
-RESULTS_PATH = os.environ["HOME"] + "/" + data_loaded['results_path'] + datetime.now().strftime("%B-%d-%Y_%H_%M%p")
-TRAINING_NAME = data_loaded['training_name']
-AGENT_ALGORITHM = data_loaded['agent_algorithm'] # DDPG, PPO2, TRPO, POSITION_PID, POS_VEL_PID
-PLOTTING_INFORMATION = bool(int(data_loaded['plotting_information']))
-PRETRAINED_MODEL = os.environ["HOME"] + "/" + data_loaded['pretrained_model']
-TEST_ONLY = bool(int(data_loaded['test_only']))
+TEST_STEPS = int(data_loaded['conf']['test_steps'])
+TRAINING_INTERVAL_STEPS = int(data_loaded['conf']['training_interval_steps'])
+TOTAL_TRAINING_STEPS = int(float(data_loaded['conf']['total_training_steps']))
+RESULTS_PATH = os.environ["HOME"] + "/" + data_loaded['conf']['results_path'] + datetime.now().strftime("%B-%d-%Y_%H_%M%p")
+TRAINING_NAME = data_loaded['conf']['training_name']
+AGENT_ALGORITHM = data_loaded['conf']['agent_algorithm'] # DDPG, PPO2, TRPO, POSITION_PID, POS_VEL_PID
+PLOTTING_INFORMATION = bool(int(data_loaded['conf']['plotting_information']))
+PRETRAINED_MODEL = os.environ["HOME"] + "/" + data_loaded['conf']['pretrained_model']
+TEST_ONLY = bool(int(data_loaded['conf']['test_only']))
 
-
-if (PLOTTING_INFORMATION == True):
+if PLOTTING_INFORMATION:
     import rospy
     from std_msgs.msg import Float32MultiArray
 
@@ -121,17 +120,51 @@ elif AGENT_ALGORITHM == "TRPO":
         print("INFO: Loaded model " + global_path + pretrained_model_name)
 
 elif AGENT_ALGORITHM == "POSITION_PID":
-    # Create model
-    model = POSITION_PID(env,  13.0, 0.0, 10.0,
-                               13.0, 0.0, 10.0,
-                               1.5, 0.0,  10.0)
+    try:
+        # Create model
+        model = POSITION_PID(env,  float(data_loaded['POSITION_PID']['kp_R']),
+                                    float(data_loaded['POSITION_PID']['ki_R']),
+                                    float(data_loaded['POSITION_PID']['kd_R']),
+                                     float(data_loaded['POSITION_PID']['kp_P']),
+                                     float(data_loaded['POSITION_PID']['ki_P']),
+                                     float(data_loaded['POSITION_PID']['kd_P']),
+                                     float(data_loaded['POSITION_PID']['kp_Y']),
+                                     float(data_loaded['POSITION_PID']['ki_Y']),
+                                     float(data_loaded['POSITION_PID']['kd_Y']))
+    except:
+        # Print warning info
+        print("WARN: YAML configuration not found for this algorithm")
+
+        # Create model
+        model = POSITION_PID(env,  13.0, 0.0, 10.0,
+                                   13.0, 0.0, 10.0,
+                                   1.5, 0.0,  10.0)
 
 elif AGENT_ALGORITHM == "POS_VEL_PID":
-    # Create model
-    model = POS_VEL_PID(env,   1.5, 1.5, 0.05,
-                               20.0, 0.0, 0.0,
-                               20.0, 0.0, 0.0,
-                               7.0, 0.0, 0.0)
+    try:
+        # Create model
+        model = POS_VEL_PID(env,   float(data_loaded['POS_VEL_PID']['kp_R_pos']),
+                                float(data_loaded['POS_VEL_PID']['kp_P_pos']),
+                                float(data_loaded['POS_VEL_PID']['kp_Y_pos']),
+                                float(data_loaded['POS_VEL_PID']['kp_R_vel']),
+                                float(data_loaded['POS_VEL_PID']['ki_R_vel']),
+                                float(data_loaded['POS_VEL_PID']['kd_R_vel']),
+                                float(data_loaded['POS_VEL_PID']['kp_P_vel']),
+                                float(data_loaded['POS_VEL_PID']['ki_P_vel']),
+                                float(data_loaded['POS_VEL_PID']['kd_P_vel']),
+                                float(data_loaded['POS_VEL_PID']['kp_Y_vel']),
+                                float(data_loaded['POS_VEL_PID']['ki_Y_vel']),
+                                float(data_loaded['POS_VEL_PID']['kd_Y_vel']))
+    except:
+        # Print warning info
+        print("WARN: YAML configuration not found for this algorithm")
+
+        # Create model
+        model = POS_VEL_PID(env,   1.5, 1.5, 0.05,
+                                   20.0, 0.0, 0.0,
+                                   20.0, 0.0, 0.0,
+                                   7.0, 0.0, 0.0)
+
 
 else:
     raise RuntimeError('ERROR: Agent not recognized')

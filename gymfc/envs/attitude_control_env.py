@@ -190,7 +190,8 @@ class CaRL_env(AttitudeFlightControlEnv):
         self.last_reward = 0
         self.render()
         self.start = 0
-        self.FREQUENCY = 70.0
+        self.FREQUENCY = float(kwargs["frequency"])
+        print("Agent frequency: " + str(self.FREQUENCY))
         self.THREAD_PERIOD = (1.0 / (10.0 * self.FREQUENCY)) # 10 times faster
         self.th_counter = 0
         self.pivot = False
