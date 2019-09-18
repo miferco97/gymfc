@@ -161,6 +161,8 @@ class AttitudeFlightControlEnv(GazeboEnv):
         else:
             state = np.zeros(10)
 
+        return state
+
     def compute_state_type_real(self, state_zero=False):
         if not state_zero:
             # State composed of absolute angles, absolute velocities and last action increment
@@ -179,8 +181,8 @@ class AttitudeFlightControlEnv(GazeboEnv):
         if self.REAL_FLIGHT:
             state = self.compute_state_type_real(state_zero=state_zero)
         else:
-            # state = self.compute_state_type_a(state_zero=state_zero)
-            state = self.compute_state_type_b(state_zero=state_zero)
+            state = self.compute_state_type_a(state_zero=state_zero)
+            # state = self.compute_state_type_b(state_zero=state_zero)
 
 
         return state

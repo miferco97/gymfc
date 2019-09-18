@@ -16,8 +16,10 @@ from stable_baselines import PPO2
 from stable_baselines import DDPG
 from stable_baselines.ddpg.noise import NormalActionNoise, OrnsteinUhlenbeckActionNoise, AdaptiveParamNoiseSpec
 from stable_baselines import TRPO
-from stable_baselines import POSITION_PID
-from stable_baselines import POS_VEL_PID
+from stable_baselines import POSITION_PID_REAL
+from stable_baselines import POS_VEL_PID_REAL
+from stable_baselines import POSITION_PID_SIM
+from stable_baselines import POS_VEL_PID_SIM
 
 class ConfigLoadException(Exception):
     pass
@@ -119,52 +121,97 @@ elif AGENT_ALGORITHM == "TRPO":
         model = TRPO.load(global_path + pretrained_model_name, env=env)
         print("INFO: Loaded model " + global_path + pretrained_model_name)
 
-elif AGENT_ALGORITHM == "POSITION_PID":
+elif AGENT_ALGORITHM == "POSITION_PID_REAL":
     try:
         # Create model
-        model = POSITION_PID(env,  float(data_loaded['POSITION_PID']['kp_R']),
-                                    float(data_loaded['POSITION_PID']['ki_R']),
-                                    float(data_loaded['POSITION_PID']['kd_R']),
-                                     float(data_loaded['POSITION_PID']['kp_P']),
-                                     float(data_loaded['POSITION_PID']['ki_P']),
-                                     float(data_loaded['POSITION_PID']['kd_P']),
-                                     float(data_loaded['POSITION_PID']['kp_Y']),
-                                     float(data_loaded['POSITION_PID']['ki_Y']),
-                                     float(data_loaded['POSITION_PID']['kd_Y']))
+        model = POSITION_PID_REAL(env,  float(data_loaded['POSITION_PID_REAL']['kp_R']),
+                                    float(data_loaded['POSITION_PID_REAL']['ki_R']),
+                                    float(data_loaded['POSITION_PID_REAL']['kd_R']),
+                                     float(data_loaded['POSITION_PID_REAL']['kp_P']),
+                                     float(data_loaded['POSITION_PID_REAL']['ki_P']),
+                                     float(data_loaded['POSITION_PID_REAL']['kd_P']),
+                                     float(data_loaded['POSITION_PID_REAL']['kp_Y']),
+                                     float(data_loaded['POSITION_PID_REAL']['ki_Y']),
+                                     float(data_loaded['POSITION_PID_REAL']['kd_Y']))
     except:
         # Print warning info
         print("WARN: YAML configuration not found for this algorithm")
 
         # Create model
-        model = POSITION_PID(env,  13.0, 0.0, 10.0,
+        model = POSITION_PID_REAL(env,  13.0, 0.0, 10.0,
                                    13.0, 0.0, 10.0,
                                    1.5, 0.0,  10.0)
 
-elif AGENT_ALGORITHM == "POS_VEL_PID":
+elif AGENT_ALGORITHM == "POS_VEL_PID_REAL":
     try:
         # Create model
-        model = POS_VEL_PID(env,   float(data_loaded['POS_VEL_PID']['kp_R_pos']),
-                                float(data_loaded['POS_VEL_PID']['kp_P_pos']),
-                                float(data_loaded['POS_VEL_PID']['kp_Y_pos']),
-                                float(data_loaded['POS_VEL_PID']['kp_R_vel']),
-                                float(data_loaded['POS_VEL_PID']['ki_R_vel']),
-                                float(data_loaded['POS_VEL_PID']['kd_R_vel']),
-                                float(data_loaded['POS_VEL_PID']['kp_P_vel']),
-                                float(data_loaded['POS_VEL_PID']['ki_P_vel']),
-                                float(data_loaded['POS_VEL_PID']['kd_P_vel']),
-                                float(data_loaded['POS_VEL_PID']['kp_Y_vel']),
-                                float(data_loaded['POS_VEL_PID']['ki_Y_vel']),
-                                float(data_loaded['POS_VEL_PID']['kd_Y_vel']))
+        model = POS_VEL_PID_REAL(env,   float(data_loaded['POS_VEL_PID_REAL']['kp_R_pos']),
+                                float(data_loaded['POS_VEL_PID_REAL']['kp_P_pos']),
+                                float(data_loaded['POS_VEL_PID_REAL']['kp_Y_pos']),
+                                float(data_loaded['POS_VEL_PID_REAL']['kp_R_vel']),
+                                float(data_loaded['POS_VEL_PID_REAL']['ki_R_vel']),
+                                float(data_loaded['POS_VEL_PID_REAL']['kd_R_vel']),
+                                float(data_loaded['POS_VEL_PID_REAL']['kp_P_vel']),
+                                float(data_loaded['POS_VEL_PID_REAL']['ki_P_vel']),
+                                float(data_loaded['POS_VEL_PID_REAL']['kd_P_vel']),
+                                float(data_loaded['POS_VEL_PID_REAL']['kp_Y_vel']),
+                                float(data_loaded['POS_VEL_PID_REAL']['ki_Y_vel']),
+                                float(data_loaded['POS_VEL_PID_REAL']['kd_Y_vel']))
     except:
         # Print warning info
         print("WARN: YAML configuration not found for this algorithm")
 
         # Create model
-        model = POS_VEL_PID(env,   1.5, 1.5, 0.05,
+        model = POS_VEL_PID_REAL(env,   6.0, 8.0, 1.5,
+                                   0.003, 0.0002, 0.004,
+                                   0.003, 0.0002, 0.004,
+                                   0.003, 0.0002, 0.004)
+
+elif AGENT_ALGORITHM == "POSITION_PID_SIM":
+    try:
+        # Create model
+        model = POSITION_PID_SIM(env,  float(data_loaded['POSITION_PID_SIM']['kp_R']),
+                                    float(data_loaded['POSITION_PID_SIM']['ki_R']),
+                                    float(data_loaded['POSITION_PID_SIM']['kd_R']),
+                                     float(data_loaded['POSITION_PID_SIM']['kp_P']),
+                                     float(data_loaded['POSITION_PID_SIM']['ki_P']),
+                                     float(data_loaded['POSITION_PID_SIM']['kd_P']),
+                                     float(data_loaded['POSITION_PID_SIM']['kp_Y']),
+                                     float(data_loaded['POSITION_PID_SIM']['ki_Y']),
+                                     float(data_loaded['POSITION_PID_SIM']['kd_Y']))
+    except:
+        # Print warning info
+        print("WARN: YAML configuration not found for this algorithm")
+
+        # Create model
+        model = POSITION_PID_SIM(env,  13.0, 0.0, 10.0,
+                                   13.0, 0.0, 10.0,
+                                   1.5, 0.0,  10.0)
+
+elif AGENT_ALGORITHM == "POS_VEL_PID_SIM":
+    try:
+        # Create model
+        model = POS_VEL_PID_SIM(env,   float(data_loaded['POS_VEL_PID_SIM']['kp_R_pos']),
+                                float(data_loaded['POS_VEL_PID_SIM']['kp_P_pos']),
+                                float(data_loaded['POS_VEL_PID_SIM']['kp_Y_pos']),
+                                float(data_loaded['POS_VEL_PID_SIM']['kp_R_vel']),
+                                float(data_loaded['POS_VEL_PID_SIM']['ki_R_vel']),
+                                float(data_loaded['POS_VEL_PID_SIM']['kd_R_vel']),
+                                float(data_loaded['POS_VEL_PID_SIM']['kp_P_vel']),
+                                float(data_loaded['POS_VEL_PID_SIM']['ki_P_vel']),
+                                float(data_loaded['POS_VEL_PID_SIM']['kd_P_vel']),
+                                float(data_loaded['POS_VEL_PID_SIM']['kp_Y_vel']),
+                                float(data_loaded['POS_VEL_PID_SIM']['ki_Y_vel']),
+                                float(data_loaded['POS_VEL_PID_SIM']['kd_Y_vel']))
+    except:
+        # Print warning info
+        print("WARN: YAML configuration not found for this algorithm")
+
+        # Create model
+        model = POS_VEL_PID_SIM(env,   1.5, 1.5, 0.05,
                                    20.0, 0.0, 0.0,
                                    20.0, 0.0, 0.0,
                                    7.0, 0.0, 0.0)
-
 
 else:
     raise RuntimeError('ERROR: Agent not recognized')

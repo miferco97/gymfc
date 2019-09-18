@@ -1,2 +1,4 @@
-from stable_baselines.custom_agents.position_pid import POSITION_PID
-from stable_baselines.custom_agents.position_pid import POS_VEL_PID
+from stable_baselines.custom_agents.position_pid import POSITION_PID_SIM
+from stable_baselines.custom_agents.position_pid import POS_VEL_PID_SIM
+from stable_baselines.custom_agents.position_pid import POSITION_PID_REAL
+from stable_baselines.custom_agents.position_pid import POS_VEL_PID_REAL

@@ -5,14 +5,14 @@ conf:
    total_training_steps: 1e12
    results_path: py_workspace/stable-baselines/results/
    training_name: ppo2_gymfc_pitch
-   agent_algorithm: POS_VEL_PID # DDPG, PPO2, TRPO, POSITION_PID, POS_VEL_PID
+   agent_algorithm: POS_VEL_PID_SIM # DDPG, PPO2, TRPO, POSITION_PID_REAL, POS_VEL_PID_REAL, POSITION_PID_SIM, POS_VEL_PID_SIM
    plotting_information: 1
    pretrained_model: py_workspace/stable-baselines/results/June-20-2019_11_22AM_ppo2_gymfc_pitch_complete_filtered_and_penalization/ppo2_gymfc_pitch_0000590000.pkl
    test_only: 1
 
-POS_VEL_PID:
+POS_VEL_PID_SIM:
    # Position gains
-   kp_R_pos: -1.5
+   kp_R_pos: 1.5
    kp_P_pos: 1.5
    kp_Y_pos: 0.05
 
@@ -21,15 +21,15 @@ POS_VEL_PID:
    ki_R_vel: 0.0
    kd_R_vel: 0.0
 
-   kp_P_vel: -20.0
+   kp_P_vel: 20.0
    ki_P_vel: 0.0
    kd_P_vel: 0.0
 
-   kp_Y_vel: -7.0
+   kp_Y_vel: 7.0
    ki_Y_vel: 0.0
    kd_Y_vel: 0.0
 
-POSITION_PID:
+POSITION_PID_SIM:
    # Position gains
    kp_R: 13.0
    ki_R: 0.0
@@ -41,4 +41,4 @@ POSITION_PID:
 
    kp_Y: 1.5
    ki_Y: 0.0
-   kd_Y: -10.0
+   kd_Y: 10.0
