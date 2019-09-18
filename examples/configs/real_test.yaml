@@ -12,22 +12,22 @@ conf:
 
 POS_VEL_PID:
    # Position gains
-   kp_R_pos: -1.5
-   kp_P_pos: 1.5
-   kp_Y_pos: 0.05
+   kp_R_pos: 6.0
+   kp_P_pos: 8.0
+   kp_Y_pos: 1.5
 
    # Velocity gains
-   kp_R_vel: 20.0
-   ki_R_vel: 0.0
-   kd_R_vel: 0.0
+   kp_R_vel: 0.003
+   ki_R_vel: 0.0002
+   kd_R_vel: 0.004
 
-   kp_P_vel: -20.0
-   ki_P_vel: 0.0
-   kd_P_vel: 0.0
+   kp_P_vel: 0.003
+   ki_P_vel: 0.0002
+   kd_P_vel: 0.004
 
-   kp_Y_vel: -7.0
-   ki_Y_vel: 0.0
-   kd_Y_vel: 0.0
+   kp_Y_vel: 0.003
+   ki_Y_vel: 0.0002
+   kd_Y_vel: 0.004
 
 POSITION_PID:
    # Position gains
@@ -41,4 +41,4 @@ POSITION_PID:
 
    kp_Y: 1.5
    ki_Y: 0.0
-   kd_Y: -10.0
+   kd_Y: 10.0

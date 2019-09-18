@@ -196,6 +196,7 @@ def evaluate(model, num_steps=1000, pub=None):
         # Stats
         episode_rewards[-1] += rewards[0]
         if dones[0]:
+            print("Reseting")
             obs = env.reset()
             episode_rewards.append(0.0)
     # Compute mean reward for the last 100 episodes

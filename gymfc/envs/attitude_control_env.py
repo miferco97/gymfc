@@ -110,17 +110,20 @@ class AttitudeFlightControlEnv(GazeboEnv):
         return [reward, done]
 
     def compute_reward(self):
-        # Compute reward
-        # [reward, done] = self.compute_reward_type_a()
-        [reward, done] = self.compute_reward_type_b()
+        if not self.REAL_FLIGHT:
+            # Compute reward
+            # [reward, done] = self.compute_reward_type_a()
+            [reward, done] = self.compute_reward_type_b()
 
-        # Store last reward
-        if done:
-            self.last_reward = 0
-            self.last_action = []
-            self.action = []
+            # Store last reward
+            if done:
+                self.last_reward = 0
+                self.last_action = []
+                self.action = []
 
-        return [reward, done]
+            return [reward, done]
+        else:
+            return [0, False]
 
     def compute_state_type_a(self, state_zero=False):
         # State composed of absolute angles and absolute velocities
@@ -158,11 +161,27 @@ class AttitudeFlightControlEnv(GazeboEnv):
         else:
             state = np.zeros(10)
 
+    def compute_state_type_real(self, state_zero=False):
+        if not state_zero:
+            # State composed of absolute angles, absolute velocities and last action increment
+            self.speeds = self.obs.angular_velocity_rpy
+
+            euler_normalized = self.obs.euler
+
+            state = np.append(euler_normalized, self.speeds)
+
+        else:
+            state = np.zeros(6)
+
         return state
 
     def compute_state(self, state_zero=False):
-        # state = self.compute_state_type_a(state_zero=state_zero)
-        state = self.compute_state_type_b(state_zero=state_zero)
+        if self.REAL_FLIGHT:
+            state = self.compute_state_type_real(state_zero=state_zero)
+        else:
+            # state = self.compute_state_type_a(state_zero=state_zero)
+            state = self.compute_state_type_b(state_zero=state_zero)
+
 
         return state
 
@@ -236,18 +255,22 @@ class CaRL_env(AttitudeFlightControlEnv):
         self.last_action = self.action
         self.action = action_local
 
+
         end_sim = self.sim_time
 
         while (end_sim - self.start_sim) <= (1 / self.FREQUENCY):
             # print(action_local)
             self.obs = self.step_sim(action_local, send_actions=False)
             end_sim = self.sim_time
+            # print(self.start_sim)
+            # print(end_sim)
 
         self.obs = self.step_sim(action_local)
 
         # print("Measured frequency: " + str(1 / (end_sim - self.start_sim)))
         # print("Measured end: " + str(end_sim) + "\t Masured start: " + str(self.start_sim))
         self.start_sim = self.sim_time
+
 
         try:
 
@@ -277,14 +300,17 @@ class CaRL_env(AttitudeFlightControlEnv):
 
             # self.animate()
 
-            if self.sim_time >= self.max_sim_time:
-                done = True
-                self.last_theta_norm = 0
+            if not self.REAL_FLIGHT:
+                if self.sim_time >= self.max_sim_time:
+                    done = True
+                    self.last_theta_norm = 0
 
         except:
             info = {"forwarded_action": action_local, "sim_time": self.sim_time, "sp": self.omega_target,
                     "current_rpy": self.omega_actual}
             # print("state: ",state);
+
+
 
             return state, 0, False, info
 
@@ -338,103 +364,3 @@ class CaRL_env(AttitudeFlightControlEnv):
 
         if self.t_monitor:
             threading.Timer(self.THREAD_PERIOD, self.monitor_frequency).start()
-
-# class GyroErrorFeedbackEnv(AttitudeFlightControlEnv):
-#     def __init__(self, **kwargs):
-#         self.observation_history = []
-#         self.memory_size = kwargs["memory_size"]
-#         super(GyroErrorFeedbackEnv, self).__init__(**kwargs)
-#         self.omega_target = self.sample_target()
-#
-#
-#     def step(self, action):
-#         print("step 2")
-#
-#         action = np.clip(action, self.action_space.low, self.action_space.high)
-#         # Step the sim
-#
-#
-#         self.obs = self.step_sim(action) # all observations
-#
-#
-#
-#         self.error = (self.omega_target - self.obs.angular_velocity_rpy)
-#         self.observation_history.append(np.concatenate([self.error]))
-#         state = self.state()
-#         done = self.sim_time >= self.max_sim_time
-#         reward = self.compute_reward()
-#         info = {"sim_time": self.sim_time, "sp": self.omega_target, "current_rpy": self.omega_actual}
-#         return state, reward, done, info
-#
-#     def state(self):
-#         """ Get the current state """
-#         # The newest will be at the end of the array
-#         memory = np.array(self.observation_history[-self.memory_size:])
-#         return np.pad(memory.ravel(),
-#                       ( (3 * self.memory_size) - memory.size, 0),
-#                       'constant', constant_values=(0))
-#
-#     def reset(self):
-#         self.observation_history = []
-#         return super(GyroErrorFeedbackEnv, self).reset()
-
-# class GyroErrorESCVelocityFeedbackEnv(AttitudeFlightControlEnv):
-#     def __init__(self, **kwargs):
-#         self.observation_history = []
-#         self.memory_size = kwargs["memory_size"]
-#         super(GyroErrorESCVelocityFeedbackEnv, self).__init__(**kwargs)
-#         self.omega_target = self.sample_target()
-#
-#     def step(self, action):
-#         print("step 3")
-#         action = np.clip(action, self.action_space.low, self.action_space.high)
-#         # Step the sim
-#         self.obs = self.step_sim(action)
-#         self.error = self.omega_target - self.obs.angular_velocity_rpy
-#         self.observation_history.append(np.concatenate([self.error, self.obs.motor_velocity]))
-#         state = self.state()
-#         done = self.sim_time >= self.max_sim_time
-#         reward = self.compute_reward()
-#         info = {"sim_time": self.sim_time, "sp": self.omega_target, "current_rpy": self.omega_actual}
-#
-#         return state, reward, done, info
-#
-#     def state(self):
-#         """ Get the current state """
-#         # The newest will be at the end of the array
-#         memory = np.array(self.observation_history[-self.memory_size:])
-#         return np.pad(memory.ravel(),
-#                       (( (3+self.motor_count) * self.memory_size) - memory.size, 0),
-#                       'constant', constant_values=(0))
-#
-#     def reset(self):
-#         self.observation_history = []
-#         return super(GyroErrorESCVelocityFeedbackEnv, self).reset()
-
-# class GyroErrorESCVelocityFeedbackContinuousEnv(GyroErrorESCVelocityFeedbackEnv):
-#     def __init__(self, **kwargs):
-#         self.command_time_off = kwargs["command_time_off"]
-#         self.command_time_on = kwargs["command_time_on"]
-#         self.command_off_time = None
-#         super(GyroErrorESCVelocityFeedbackContinuousEnv, self).__init__(**kwargs)
-#
-#     def step(self, action):
-#         print("step 4")
-#         """ Sample a random angular velocity """
-#         ret = super(GyroErrorESCVelocityFeedbackContinuousEnv, self).step(action)
-#
-#         # Update the target angular velocity
-#         if not self.command_off_time:
-#             self.command_off_time = self.np_random.uniform(*self.command_time_on)
-#         elif self.sim_time >= self.command_off_time: # Issue new command
-#             # Commands are executed as pulses, always returning to center
-#             if (self.omega_target == np.zeros(3)).all():
-#                 self.omega_target = self.sample_target()
-#                 self.command_off_time = self.sim_time  + self.np_random.uniform(*self.command_time_on)
-#             else:
-#                 self.omega_target = np.zeros(3)
-#                 self.command_off_time = self.sim_time  + self.np_random.uniform(*self.command_time_off)
-#
-#         return ret
-
-

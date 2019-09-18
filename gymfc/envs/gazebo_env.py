@@ -219,12 +219,12 @@ class GazeboEnv(gym.Env):
         self.real_observations = np.asarray(data.data)
         # print("Received data: " + str(self.real_observations))
 
-    def iterate_ros(self):
-        if self.REAL_FLIGHT:
-            import rospy
-            from std_msgs.msg import Float32MultiArray
-
-        rospy.spin()
+    # def iterate_ros(self):
+    #     if self.REAL_FLIGHT:
+    #         import rospy
+    #         from std_msgs.msg import Float32MultiArray
+    #
+    #     rospy.spin()
 
     def load_config(self):
         if self.GYMFC_CONFIG_ENV_VAR not in os.environ:
@@ -371,15 +371,15 @@ class GazeboEnv(gym.Env):
             # Full range
             RELATIVE_ACTIONS = True
             full_range = 1000
-            percentage_of_actions = 0.7
-            offset = 1400
+            percentage_of_actions = 0.1
+            offset = 200
 
             # Convert to motor input to PWM range [0, 1000] to match
             # Betaflight mixer output
             if RELATIVE_ACTIONS:
-                pwm_motor_values = [(m * full_range * percentage_of_actions + offset) for m in action]
+                pwm_motor_values = [(m * full_range * percentage_of_actions + 1000.0 + offset) for m in action]
             else:
-                pwm_motor_values = [((m + 1) * 500) for m in action]
+                pwm_motor_values = [((m + 1) * 500.0) for m in action]
 
             if send_actions:
                 # Publish action
@@ -390,6 +390,7 @@ class GazeboEnv(gym.Env):
             # Make these visible
             self.omega_actual = self.real_observations
             self.sim_time = rospy.get_rostime().to_sec() - self.real_init_time
+            # print(self.sim_time)
 
             # Re-init time
             if self.start_sim == 0:
